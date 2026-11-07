@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f7fb">
+  <title>NetQuiz — CCNA tayyorgarlik</title>
+  <style>
+    :root{color-scheme:light;--bg:#f4f6fb;--paper:#fff;--ink:#17243a;--muted:#69778d;--line:#e1e6ef;--accent:#4358dc;--accent-soft:#edf0ff;--green:#16784b;--green-soft:#e4f5eb;--red:#b83232;--red-soft:#fff0ef;--gold:#a96b08;--shadow:0 12px 32px rgba(27,39,75,.07);--base:16px}
+    :root[data-theme="dark"]{color-scheme:dark;--bg:#101725;--paper:#192337;--ink:#eef2ff;--muted:#a2aec3;--line:#2b3850;--accent:#96a2ff;--accent-soft:#272f55;--green:#6de0a5;--green-soft:#173d32;--red:#ff918b;--red-soft:#492a32;--gold:#f3c16b;--shadow:0 12px 32px rgba(0,0,0,.2)}
+    :root[data-theme="sepia"]{color-scheme:light;--bg:#f4eddd;--paper:#fff9eb;--ink:#403524;--muted:#786c58;--line:#e5dac4;--accent:#8a5a32;--accent-soft:#f1e4ce;--green:#346b43;--green-soft:#e6efdc;--red:#a33f32;--red-soft:#f6e5dc;--gold:#986a1f;--shadow:0 12px 30px rgba(89,66,34,.08)}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font:var(--base)/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;transition:background .2s,color .2s}
+    button,input,select,textarea{font:inherit}
+    button{cursor:pointer}
+    a{color:inherit}
+    .shell{max-width:1180px;margin:auto;padding:20px 24px 64px}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:26px}
+    .brand{display:flex;gap:11px;align-items:center;font-size:1.15rem;font-weight:850;letter-spacing:-.03em}
+    .brand-mark{display:grid;place-items:center;width:40px;height:40px;border-radius:13px;background:var(--accent);color:white;font-size:1.25rem}
+    .brand small{display:block;color:var(--muted);font-size:.72rem;font-weight:600;letter-spacing:0}
+    .top-actions,.nav,.actions,.inline{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+    .icon-btn,.btn,.nav-btn,.chip-btn{border:1px solid var(--line);border-radius:11px;background:var(--paper);color:var(--ink);min-height:42px;padding:8px 13px;font-weight:700}
+    .icon-btn{min-width:42px;padding:7px}
+    .btn.primary{border-color:var(--accent);background:var(--accent);color:#fff}
+    :root[data-theme="dark"] .btn.primary{color:#12182b}
+    .btn.soft{background:var(--accent-soft);border-color:transparent;color:var(--accent)}
+    .btn.danger{color:var(--red)}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .nav{gap:5px;margin-bottom:24px;padding:5px;border:1px solid var(--line);border-radius:14px;background:var(--paper);width:max-content;max-width:100%}
+    .nav-btn{min-height:36px;border:0;background:transparent;color:var(--muted);padding:6px 12px}
+    .nav-btn.active{background:var(--accent-soft);color:var(--accent)}
+    .page{display:grid;gap:18px}
+    .hero{position:relative;overflow:hidden;padding:28px;border-radius:22px;background:linear-gradient(120deg,#3549c7,#6475f2);color:white;box-shadow:var(--shadow)}
+    .hero:after{content:"";position:absolute;width:270px;height:270px;border:1px solid #ffffff2e;border-radius:50%;right:-65px;top:-135px;box-shadow:0 0 0 35px #ffffff0d,0 0 0 75px #ffffff0a}
+    .hero h1{font-size:clamp(1.7rem,4vw,2.4rem);line-height:1.18;margin:5px 0 8px;letter-spacing:-.04em}
+    .hero p{margin:0;max-width:600px;color:#e3e7ff}
+    .eyebrow{font-size:.76rem;text-transform:uppercase;letter-spacing:.13em;font-weight:800;opacity:.8}
+    .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
+    .stat,.panel,.section-card,.question-card,.result-card{background:var(--paper);border:1px solid var(--line);border-radius:17px;box-shadow:var(--shadow)}
+    .stat{padding:16px 18px}.stat b{display:block;font-size:1.5rem;letter-spacing:-.04em}.stat span{color:var(--muted);font-size:.86rem}
+    .section-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin:6px 0 0}
+    .section-head h2,.panel h2{margin:0;font-size:1.18rem;letter-spacing:-.02em}
+    .section-head p{margin:3px 0 0;color:var(--muted);font-size:.9rem}
+    .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+    .section-card{padding:17px;display:grid;gap:11px;transition:transform .15s,border .15s}
+    .section-card:hover{transform:translateY(-2px);border-color:var(--accent)}
+    .section-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+    .section-card h3{margin:0;font-size:1rem;line-height:1.35}
+    .section-card p{margin:0;color:var(--muted);font-size:.82rem}
+    .pill{display:inline-flex;align-items:center;gap:5px;border-radius:99px;background:var(--accent-soft);color:var(--accent);font-size:.72rem;font-weight:800;padding:4px 9px;white-space:nowrap}
+    .pill.done{background:var(--green-soft);color:var(--green)}
+    .progress-track{height:7px;border-radius:9px;background:var(--line);overflow:hidden}
+    .progress-track i{display:block;height:100%;border-radius:inherit;background:var(--accent)}
+    .progress-lines{display:grid;gap:7px}.progress-row{display:flex;justify-content:space-between;gap:8px;color:var(--muted);font-size:.75rem}
+    .quick-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+    .quick{padding:18px;background:var(--paper);border:1px solid var(--line);border-radius:17px;text-align:left;color:var(--ink);box-shadow:var(--shadow);display:grid;gap:5px}
+    .quick strong{font-size:1rem}.quick span{color:var(--muted);font-size:.83rem}.quick .emoji{font-size:1.35rem}
+    .panel{padding:21px}.panel p{color:var(--muted)}
+    .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+    .field{display:grid;gap:6px}.field label{font-size:.84rem;font-weight:750}.field small{color:var(--muted)}
+    .field input,.field select,.field textarea,.search-input{width:100%;min-height:44px;border:1px solid var(--line);border-radius:10px;padding:9px 11px;background:var(--bg);color:var(--ink)}
+    .field textarea{min-height:150px;resize:vertical;font: .8rem/1.5 ui-monospace,Consolas,monospace}
+    .switch-line{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 0;border-bottom:1px solid var(--line)}
+    .switch-line:last-child{border-bottom:0}.switch-line small{display:block;color:var(--muted)}
+    .quiz-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.quiz-head h2{margin:0;font-size:1rem}
+    .quiz-track{height:8px;background:var(--line);border-radius:9px;overflow:hidden;margin-top:12px}
+    .quiz-track i{display:block;height:100%;background:var(--accent);transition:width .2s}
+    .question-card{padding:clamp(17px,4vw,30px);display:grid;gap:18px}
+    .q-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.q-id{color:var(--accent);font-weight:850}
+    .question-text{margin:0;font-size:clamp(1.15rem,2.5vw,1.45rem);line-height:1.5;font-weight:720;white-space:pre-line}
+    .exhibit{max-width:100%;height:auto;border-radius:12px;border:1px solid var(--line)}
+    pre.code{white-space:pre;overflow:auto;padding:14px;border:1px solid var(--line);border-radius:11px;background:var(--bg);font-size:.85rem}
+    .answers{display:grid;gap:9px}.answer{display:flex;align-items:flex-start;gap:12px;text-align:left;width:100%;min-height:50px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink)}
+    .answer:hover:not(:disabled){border-color:var(--accent)}.answer.selected{background:var(--accent-soft);border-color:var(--accent)}
+    .answer.ok{background:var(--green-soft);border-color:var(--green)}.answer.no{background:var(--red-soft);border-color:var(--red)}.answer.missed{border-style:dashed;border-color:var(--green)}
+    .answer-key{font-weight:850;color:var(--muted);min-width:1.5rem}.answer-text{white-space:pre-wrap;overflow-wrap:anywhere}
+    .pair-list{display:grid;gap:10px}.pair-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:12px}
+    .pair-row code{overflow-wrap:anywhere}.feedback{padding:12px 14px;border-left:4px solid var(--green);border-radius:9px;background:var(--green-soft)}
+    .feedback.wrong{border-color:var(--red);background:var(--red-soft)}.feedback small{display:block;color:var(--muted);margin-top:4px}
+    .quiz-actions{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .dots{display:flex;gap:5px;flex-wrap:wrap}.dot{width:11px;height:11px;border:0;border-radius:50%;background:var(--line);padding:0}.dot.answered{background:var(--accent)}.dot.current{outline:2px solid var(--accent);outline-offset:2px}.dot.correct{background:var(--green)}.dot.wrong{background:var(--red)}
+    .score-hero{display:flex;align-items:center;gap:18px;flex-wrap:wrap}.score-big{font-size:2.3rem;font-weight:900;letter-spacing:-.06em}.muted{color:var(--muted)}.good{color:var(--green)}.bad{color:var(--red)}
+    .table-wrap{overflow:auto}.review-table{width:100%;border-collapse:collapse;font-size:.86rem}.review-table th,.review-table td{text-align:left;padding:10px;border-bottom:1px solid var(--line);vertical-align:top}.review-table th{color:var(--muted)}
+    .question-list{display:grid;gap:10px}.question-row{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:13px;border:1px solid var(--line);border-radius:12px;background:var(--paper)}
+    .question-row p{margin:4px 0;color:var(--muted);font-size:.87rem}
+    .toast{position:fixed;z-index:10;bottom:20px;left:50%;transform:translate(-50%,20px);padding:11px 16px;border-radius:12px;background:var(--ink);color:var(--paper);opacity:0;pointer-events:none;transition:.2s;max-width:min(90vw,600px);text-align:center}
+    .toast.show{opacity:1;transform:translate(-50%,0)}
+    .modal-back{position:fixed;z-index:20;inset:0;background:#101729a8;display:grid;place-items:center;padding:18px}
+    .modal{width:min(480px,100%);background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:19px;padding:23px;box-shadow:var(--shadow)}
+    .modal h2{margin:0 0 8px}.modal p{margin:0 0 16px;color:var(--muted)}
+    .notice{padding:12px;border-radius:11px;background:var(--accent-soft);font-size:.88rem}
+    .weak-list{display:grid;gap:8px}.weak-row{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+    .hidden{display:none!important}
+    @media(max-width:780px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.quick-grid{grid-template-columns:1fr}}
+    @media(max-width:540px){.shell{padding:13px 13px 45px}.topbar{align-items:flex-start}.brand{font-size:1rem}.brand-mark{width:36px;height:36px}.icon-btn{min-width:39px;padding:6px}.nav{width:100%;overflow-x:auto;flex-wrap:nowrap}.nav-btn{white-space:nowrap;padding-inline:10px}.hero{padding:23px 20px}.grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.pair-row{grid-template-columns:1fr;gap:5px}.question-row{display:grid}.question-card{padding:17px}.stat{padding:13px}.stat b{font-size:1.3rem}}
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand"><div class="brand-mark">N</div><div>NetQuiz<small>CCNA imtihoniga tayyorgarlik</small></div></div>
+      <div class="top-actions">
+        <button class="icon-btn" id="fontDown" title="Shriftni kichraytirish" aria-label="Shriftni kichraytirish">A−</button>
+        <button class="icon-btn" id="fontUp" title="Shriftni kattalashtirish" aria-label="Shriftni kattalashtirish">A+</button>
+        <button class="icon-btn" id="themeBtn" title="Ko'rinishni almashtirish" aria-label="Ko'rinishni almashtirish">☀️</button>
+      </div>
+    </header>
+    <nav class="nav" id="nav">
+      <button class="nav-btn active" data-page="home">Bosh sahifa</button>
+      <button class="nav-btn" data-page="universal">Universal test</button>
+      <button class="nav-btn" data-page="mistakes">Xatolar daftari</button>
+      <button class="nav-btn" data-page="stars">Saqlanganlar</button>
+      <button class="nav-btn" data-page="stats">Statistika</button>
+      <button class="nav-btn" data-page="group">Guruh</button>
+      <button class="nav-btn" data-page="settings">Sozlamalar</button>
+    </nav>
+    <main id="app" class="page" aria-live="polite"></main>
+  </div>
+  <div id="toast" class="toast" role="status"></div>
+  <input id="importFile" type="file" accept="application/json,.json" class="hidden">
+  <script src="questions.js"></script>
+  <script src="supabase-config.js"></script>
+  <script>
+  (function(){
+    "use strict";
+    const QUESTIONS=window.QUIZ_QUESTIONS||[], IMAGES=window.QUIZ_IMAGES||{};
+    const STORE="netquiz-v1", app=document.getElementById("app"), nav=document.getElementById("nav");
+    const defaultState={name:"",theme:"auto",font:16,masteryTarget:2,immediate:true,records:{},titles:{},daily:{},history:[]};
+    let storageError="";
+    let state=loadState(),page="home",session=null,activeSection=0,toastTimer=null;
+    let supabaseClient=null,authUid=null,roomCode="",roomChannel=null,roomSnapshot=null,groupStarted=false,supabaseConnectPromise=null,supabaseError="";
+    const html=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+    function loadState(){try{const saved=JSON.parse(localStorage.getItem(STORE)||"{}");return Object.assign({},defaultState,saved,{records:saved.records||{},titles:saved.titles||{},daily:saved.daily||{},history:saved.history||[]})}catch(e){storageError="Saqlangan progressni o‘qib bo‘lmadi. Sozlamalardan zaxira faylini import qiling.";return Object.assign({},defaultState)}}
+    function save(){try{localStorage.setItem(STORE,JSON.stringify(state))}catch(e){notify("Saqlash amalga oshmadi. Brauzer xotirasi to'lgan bo'lishi mumkin.")}}
+    function notify(s){const t=document.getElementById("toast");t.textContent=s;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),3200)}
+    function today(){return new Date().toISOString().slice(0,10)}
+    function record(q){return state.records[q.id]||(state.records[q.id]={attempts:0,correct:0,wrong:0,streak:0,mastered:false,starred:false,last:0})}
+    const sections=[];for(let i=0;i<QUESTIONS.length;i+=30){const qs=QUESTIONS.slice(i,i+30),freq={};qs.forEach(q=>freq[q.t]=(freq[q.t]||0)+1);const suggestion=Object.keys(freq).sort((a,b)=>freq[b]-freq[a])[0]||"Aralash mavzular";sections.push({number:sections.length+1,questions:qs,title:state.titles[sections.length]||("Bo'lim "+(sections.length+1)+": "+suggestion)})}
+    function sectionOf(q){return Math.floor((q.id-1)/30)}
+    function pct(n,total){return total?Math.round(n/total*100):0}
+    function orderByWeakness(items){const pool=items.slice(),out=[];while(pool.length){let total=pool.reduce((a,q)=>a+1+record(q).wrong,0),r=Math.random()*total,j=0;for(;j<pool.length-1;j++){r-=1+record(pool[j]).wrong;if(r<0)break}out.push(pool.splice(j,1)[0])}return out}
+    function applyTheme(){let theme=state.theme;if(theme==="auto")theme=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.dataset.theme=theme==="light"?"":theme;document.getElementById("themeBtn").textContent=theme==="dark"?"🌙":theme==="sepia"?"📖":"☀️";document.documentElement.style.setProperty("--base",(state.font||16)+"px")}
+    function sectionProgress(s){const rs=s.questions.map(record);return {attempted:rs.filter(r=>r.attempts>0).length,mastered:rs.filter(r=>r.mastered).length,all:s.questions.length}}
+    function renderHome(){
+      page="home";let mastered=QUESTIONS.filter(q=>record(q).mastered).length,attempted=QUESTIONS.filter(q=>record(q).attempts>0).length,allWrong=QUESTIONS.reduce((a,q)=>a+record(q).wrong,0);
+      const sorted=sections.slice().sort((a,b)=>Number(sectionProgress(b).mastered===sectionProgress(b).all)-Number(sectionProgress(a).mastered===sectionProgress(a).all)||a.number-b.number);
+      app.innerHTML='<section class="hero"><div class="eyebrow">Salom, '+html(state.name||"do'stim")+' 👋</div><h1>Bilimingizni mustahkamlang.<br>Imtihonga ishonch bilan kiring.</h1><p>Har kuni oz-ozdan mashq qiling — natijangiz va yodlangan savollaringiz shu qurilmada saqlanadi.</p></section>'+
+        '<section class="stats"><div class="stat"><b>'+mastered+' / '+QUESTIONS.length+'</b><span>Yodlangan savollar · '+pct(mastered,QUESTIONS.length)+'%</span></div><div class="stat"><b>'+attempted+'</b><span>Yechib ko‘rilgan</span></div><div class="stat"><b>'+allWrong+'</b><span>Jami xato urinishlar</span></div><div class="stat"><b>'+sections.length+'</b><span>30 savollik bo‘lim</span></div></section>'+
+        '<section class="quick-grid"><button class="quick" data-go="universal"><span class="emoji">🎲</span><strong>Universal test</strong><span>Barcha bo‘limlardan savollar va zaif joylar tahlili</span></button><button class="quick" data-go="mistakes"><span class="emoji">↻</span><strong>Xatolarni takrorlash</strong><span>'+allWrong+' ta xato urinishni qayta ishlab chiqing</span></button><button class="quick" data-go="group"><span class="emoji">👥</span><strong>Do‘stlar bilan</strong><span>Xona yarating yoki xona kodiga qo‘shiling</span></button></section>'+
+        '<div class="section-head"><div><h2>Bo‘limlar</h2><p>Nomlar savollardagi mavzulardan taklif qilindi. Qalam belgisidan tahrirlang.</p></div><span class="muted">'+QUESTIONS.length+' ta savol</span></div><section class="panel"><div class="field"><label for="questionSearch">Savol qidirish</label><input id="questionSearch" class="search-input" type="search" placeholder="Savol yoki mavzu bo‘yicha izlang..."></div><div id="searchResults"></div></section><section class="grid">'+sorted.map(s=>{const p=sectionProgress(s),done=p.mastered===p.all;return '<article class="section-card"><div class="section-top"><div><h3>'+html(s.title)+'</h3><p>'+((s.number-1)*30+1)+'–'+((s.number-1)*30+p.all)+' · '+p.all+' ta savol</p></div><button class="icon-btn" data-edit-title="'+(s.number-1)+'" aria-label="Bo‘lim nomini tahrirlash">✎</button></div><span class="pill '+(done?"done":"")+'">'+(done?"✓ Yodlangan":p.attempted?"● Jarayonda":"○ Boshlanmagan")+'</span><div class="progress-lines"><div class="progress-row"><span>Yechilgan</span><b>'+p.attempted+'/'+p.all+' · '+pct(p.attempted,p.all)+'%</b></div><div class="progress-track"><i style="width:'+pct(p.attempted,p.all)+'%"></i></div><div class="progress-row"><span>Yodlangan</span><b>'+p.mastered+'/'+p.all+' · '+pct(p.mastered,p.all)+'%</b></div><div class="progress-track"><i style="width:'+pct(p.mastered,p.all)+'%;background:var(--green)"></i></div></div><div class="actions"><button class="btn primary" data-start-section="'+(s.number-1)+'">Testni boshlash</button><button class="btn soft" data-review-section="'+(s.number-1)+'">Takrorlash</button></div></article>'}).join("")+'</section>';
+      updateNav("home")
+    }
+    function updateNav(which){nav.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===which))}
+    function renderUniversal(){
+      page="universal";app.innerHTML='<section class="panel"><div class="eyebrow muted">Barcha bo‘limlardan</div><h2>Universal test</h2><p>Takrorlanmaydigan savollar tanlanadi. Javoblar va variantlar aralashtiriladi, natijada eng zaif bo‘limlaringiz ko‘rsatiladi.</p><div class="form-grid"><div class="field"><label for="uniCount">Savollar soni</label><select id="uniCount"><option value="30">30 ta</option><option value="60">60 ta</option><option value="custom">O‘zim kiritaman</option></select><input id="uniCustom" class="hidden" type="number" min="1" max="'+QUESTIONS.length+'" placeholder="Savollar soni"></div><div class="field"><label for="uniPool">Savol tanlash</label><select id="uniPool"><option value="all">Hammasidan</option><option value="unmastered">Faqat yodlanmaganlardan</option><option value="weak">Ko‘proq xato qilinganlardan</option></select></div><div class="field"><label for="uniCheck">Javob tekshiruvi</label><select id="uniCheck"><option value="immediate">Darhol tekshirish</option><option value="end">Test oxirida</option></select></div><div class="field"><label for="uniTimer">Taymer</label><select id="uniTimer"><option value="0">Taymersiz</option><option value="30">30 daqiqa</option><option value="60">60 daqiqa</option><option value="custom">O‘zim kiritaman</option></select><input id="uniCustomTimer" class="hidden" type="number" min="1" placeholder="Daqiqa"></div></div><p class="actions"><button class="btn primary" id="startUniversal">Testni boshlash</button></p></section>';
+      updateNav("universal")
+    }
+    function showSectionSetup(idx){
+      const s=sections[idx],modal=document.createElement("div");modal.className="modal-back";modal.id="sectionModal";
+      modal.innerHTML='<section class="modal"><h2>'+html(s.title)+'</h2><p>'+s.questions.length+' ta savoldan test tuzing.</p><div class="field"><label for="sectionCount">Savollar soni</label><select id="sectionCount"><option value="15">15 ta</option><option value="30" '+(s.questions.length<30?"disabled":"")+'>30 ta</option><option value="custom">O‘zim kiritaman</option></select><input id="sectionCustom" class="hidden" type="number" min="1" max="'+s.questions.length+'" placeholder="Savollar soni"></div><div class="field" style="margin-top:12px"><label for="sectionMode">Test tartibi</label><select id="sectionMode"><option value="ordered">Fayldagi tartibda</option><option value="shuffle">Aralash savollar va variantlar</option><option value="wrong">Faqat xato qilinganlar</option></select></div><div class="field" style="margin-top:12px"><label for="sectionCheck">Javob tekshiruvi</label><select id="sectionCheck"><option value="immediate">Darhol tekshirish</option><option value="end">Test oxirida</option></select></div><div class="field" style="margin-top:12px"><label for="sectionTimer">Taymer</label><select id="sectionTimer"><option value="0">Taymersiz</option><option value="30">30 daqiqa</option><option value="60">60 daqiqa</option><option value="custom">O‘zim kiritaman</option></select><input id="sectionCustomTimer" class="hidden" type="number" min="1" placeholder="Daqiqa"></div><div class="actions" style="margin-top:16px"><button class="btn primary" id="beginSection" data-section="'+idx+'">Boshlash</button><button class="btn" id="cancelSection">Bekor qilish</button></div></section>';
+      document.body.appendChild(modal)
+    }
+    function renderSettings(){
+      page="settings";const sharedConfig=window.NETQUIZ_SUPABASE_CONFIG;app.innerHTML='<section class="panel"><h2>Sozlamalar</h2><div class="switch-line"><div><b>Ism</b><small>Natijalar qurilmangizda saqlanadi. Ro‘yxatdan o‘tish shart emas.</small></div><button class="btn soft" id="changeName">'+html(state.name||"Ism kiritish")+'</button></div><div class="switch-line"><div><b>Darhol tekshirish</b><small>O‘chirilsa, to‘g‘ri javoblar test yakunida ko‘rsatiladi.</small></div><input id="immediateSetting" type="checkbox" '+(state.immediate?"checked":"")+'></div><div class="switch-line"><div><b>Yodlash mezoni</b><small>Ketma-ket to‘g‘ri javoblardan keyin savol yodlangan hisoblanadi.</small></div><select id="masteryTarget"><option value="2" '+(state.masteryTarget===2?"selected":"")+'>2 marta</option><option value="3" '+(state.masteryTarget===3?"selected":"")+'>3 marta</option><option value="4" '+(state.masteryTarget===4?"selected":"")+'>4 marta</option></select></div><div class="switch-line"><div><b>Progress zaxirasi</b><small>Ism, progress, xatolar va yulduzchalarni JSON fayl sifatida saqlang.</small></div><div class="actions"><button class="btn soft" id="exportData">Eksport</button><button class="btn soft" id="importData">Import</button></div></div><div class="switch-line"><div><b>Progressni tiklash</b><small>Barcha mahalliy natijalar va yodlangan belgilar o‘chiriladi.</small></div><button class="btn danger" id="resetData">Tiklash</button></div><div class="section-head"><div><h2>Supabase guruh sozlamasi</h2><p>'+(sharedConfig?"Supabase sozlamasi barcha foydalanuvchilar uchun bir marta kiritilgan.":"Supabase sozlamasi topilmadi; sayt egasi supabase-config.js faylini sozlashi kerak.")+'</p></div></div>'+(sharedConfig?'<div class="notice">Supabase loyihasi sozlangan. SQL Editor’da <code>supabase-schema.sql</code> faylini bir marta ishga tushiring.</div>':'<div class="notice">Dashboard’dagi Project URL va publishable key’ni <code>supabase-config.js</code> fayliga kiriting. <code>service_role</code> kalitini brauzer kodiga qo‘ymang.</div>')+'<details style="margin-top:14px"><summary><b>Supabase sozlash va xavfsizlik</b></summary><ol><li>Supabase Authentication → Sign In / Providers’da Anonymous sign-in’ni yoqing.</li><li><code>supabase-schema.sql</code> faylidagi SQL’ni SQL Editor’da bir marta ishga tushiring.</li><li>Supabase Database → Publications’da <code>supabase_realtime</code> uchun <code>netquiz_rooms</code> va <code>netquiz_participants</code> jadvallarini yoqing.</li><li><code>supabase-config.js</code> faylini sozlab, saytning qolgan fayllari bilan birga hostingga yuklang.</li></ol><p>Frontend’da faqat publishable key ishlatiladi; u maxfiy emas. Ma’lumotlarga kirish RLS qoidalari va anonim auth orqali himoyalanadi. Secret yoki service_role key’ni hech qachon saytga qo‘ymang.</p></details></section>';
+      updateNav("settings")
+    }
+    function renderGroup(){
+      page="group";const connected=!!(supabaseClient&&authUid);
+      const supabaseAvailable=!!window.NETQUIZ_SUPABASE_CONFIG;
+      app.innerHTML='<section class="panel"><div class="eyebrow muted">Haqiqiy vaqt rejimi</div><h2>Guruh bilan yeching</h2><p>Ishtirokchilar bir xil savollar to‘plamini ko‘radi, har kim o‘z tezligida ishlaydi. Natijalar xona a’zolariga ko‘rinadi.</p><div class="notice">'+(connected?"Supabase ulandi. Ismingiz: "+html(state.name):supabaseError?"Supabase’ga ulanib bo‘lmadi: "+html(supabaseError):supabaseAvailable?"Umumiy Supabase’ga ulanmoqda. Internet ulanishini tekshiring.":"Sayt egasi Supabase’ni bir marta sozlashi kerak. Yakka rejim internet talab qilmaydi.")+'</div>'+(!connected&&!supabaseAvailable?'<p><button class="btn primary" data-go="settings">Supabase sozlash yo‘riqnomasi</button></p>':'')+(!connected&&supabaseAvailable?'<p><button class="btn soft" id="connectSupabase">Supabase’ga qayta ulanish</button></p>':'')+'<div class="form-grid" style="margin-top:16px"><div class="field"><label for="groupMode">Test turi</label><select id="groupMode"><option value="section">Bo‘lim testi</option><option value="universal">Universal test</option></select></div><div class="field" id="groupSectionField"><label for="groupSection">Bo‘lim</label><select id="groupSection">'+sections.map(s=>'<option value="'+(s.number-1)+'">'+html(s.title)+'</option>').join("")+'</select></div><div class="field"><label for="groupCount">Savollar soni</label><select id="groupCount"><option value="30">30 ta</option><option value="15">15 ta</option><option value="custom">O‘zim kiritaman</option></select><input id="groupCustomCount" class="hidden" type="number" min="1" max="'+QUESTIONS.length+'" placeholder="Savollar soni"></div><div class="field"><label for="groupCode">Mavjud xona kodiga kirish</label><input id="groupCode" maxlength="6" placeholder="Masalan: ABC123" autocomplete="off"></div></div><div class="actions" style="margin-top:14px"><button class="btn primary" id="createRoom" '+(!connected?"disabled":"")+'>Xona yaratish</button><button class="btn soft" id="joinRoom" '+(!connected?"disabled":"")+'>Kod bilan kirish</button></div></section>'+renderRoom();
+      updateNav("group");
+      const gm=document.getElementById("groupMode");if(gm)gm.onchange=()=>document.getElementById("groupSectionField").classList.toggle("hidden",gm.value==="universal")
+    }
+    function renderRoom(){
+      if(!roomCode||!roomSnapshot)return "";
+      const room=roomSnapshot,players=room.participants||{},isOwner=room.owner===authUid,ids=room.ids||[];
+      return '<section class="panel"><div class="section-head"><div><div class="eyebrow muted">Xona '+html(roomCode)+'</div><h2>'+html(room.title||"CCNA test")+'</h2><p>'+ids.length+' ta savol · Holati: '+(room.state==="active"?"Test davom etmoqda":"Kutmoqda")+'</p></div><button class="btn danger" id="leaveRoom">Xonadan chiqish</button></div><p><label>Taklif havolasi <input class="search-input" readonly value="'+html(location.origin+location.pathname+'?room='+roomCode)+'"></label></p><div class="section-head"><div><h2>Ishtirokchilar ('+Object.keys(players).length+')</h2></div></div><div class="question-list">'+Object.keys(players).map(uid=>{const p=players[uid]||{};return '<div class="question-row"><b>'+html(p.name||"Ishtirokchi")+(uid===room.owner?" · Xona egasi":"")+'</b><span class="pill">'+(p.status==="done"?"Tugatdi":p.status==="solving"?"Yechmoqda":"Kutmoqda")+' · '+(p.progress||0)+'/'+ids.length+(p.status==="done"?" · "+(p.score||0)+" to‘g‘ri · "+(Math.floor((p.elapsed||0)/60))+" daq":"")+'</span></div>'}).join("")+'</div><div class="actions" style="margin-top:14px">'+(isOwner&&room.state==="lobby"?'<button class="btn primary" id="startGroup">Hamma uchun boshlash</button>':'')+(room.state==="active"&&!(session&&session.group)?'<button class="btn primary" id="enterGroupTest">Testga qaytish</button>':'')+'</div></section>'
+    }
+    function renderMistakes(){
+      page="mistakes";const list=QUESTIONS.filter(q=>record(q).wrong>0).sort((a,b)=>record(b).wrong-record(a).wrong);
+      app.innerHTML='<section class="panel"><h2>Xatolar daftari</h2><p>Barcha noto‘g‘ri javob bergan savollar shu yerda. Savolni ochib, qayta yechishingiz mumkin.</p>'+(list.length?'<div class="question-list">'+list.map(q=>'<div class="question-row"><div><b>#'+q.id+' · '+html(q.t)+'</b><p>'+html(q.q)+'</p><span class="muted">'+record(q).wrong+' marta xato · '+(record(q).mastered?"Yodlangan":"Hali yodlanmagan")+'</span></div><button class="btn soft" data-practice="'+q.id+'">Yechish</button></div>').join("")+'</div><p><button class="btn primary" id="retryAllWrong">Barchasini qayta yechish</button></p>':'<div class="notice">Hozircha xato qilingan savollar yo‘q. Barakalla!</div>')+'</section>';
+      updateNav("mistakes")
+    }
+    function renderStars(){
+      page="stars";const list=QUESTIONS.filter(q=>record(q).starred);
+      app.innerHTML='<section class="panel"><h2>Saqlangan savollar</h2><p>Yulduzcha bilan belgilangan savollaringiz.</p>'+(list.length?'<div class="question-list">'+list.map(q=>'<div class="question-row"><div><b>#'+q.id+' · '+html(q.t)+'</b><p>'+html(q.q)+'</p></div><div class="actions"><button class="btn soft" data-practice="'+q.id+'">Yechish</button><button class="icon-btn" data-star="'+q.id+'" aria-label="Saqlanganlardan olib tashlash">★</button></div></div>').join("")+'</div>':'<div class="notice">Hali savol saqlanmagan. Test paytida yulduzchani bosing.</div>')+'</section>';
+      updateNav("stars")
+    }
+    function renderStats(){
+      page="stats";const totalCorrect=QUESTIONS.reduce((a,q)=>a+record(q).correct,0),attempts=QUESTIONS.reduce((a,q)=>a+record(q).attempts,0),weak=sections.map(s=>{const a=s.questions.reduce((n,q)=>n+record(q).wrong,0);return {title:s.title,n:a}}).filter(x=>x.n).sort((a,b)=>b.n-a.n).slice(0,8);
+      app.innerHTML='<section class="stats"><div class="stat"><b>'+totalCorrect+' / '+attempts+'</b><span>Umumiy aniqlik · '+pct(totalCorrect,attempts)+'%</span></div><div class="stat"><b>'+state.history.length+'</b><span>Tugallangan testlar</span></div><div class="stat"><b>'+QUESTIONS.filter(q=>record(q).mastered).length+'</b><span>Yodlangan</span></div><div class="stat"><b>'+Object.values(state.daily).reduce((a,n)=>a+n,0)+'</b><span>Kunlik hisobdagi savollar</span></div></section><section class="panel"><h2>Kunlik mashg‘ulot</h2><div class="weak-list">'+Array.from({length:7},(_,i)=>{const d=new Date();d.setDate(d.getDate()-6+i);const key=d.toISOString().slice(0,10);return '<div class="weak-row"><span>'+key+'</span><b>'+((state.daily||{})[key]||0)+' ta savol</b></div>'}).join("")+'</div></section><section class="panel"><h2>Ko‘proq xato qilingan bo‘limlar</h2>'+(weak.length?'<div class="weak-list">'+weak.map(x=>'<div class="weak-row"><span>'+html(x.title)+'</span><b class="bad">'+x.n+' ta xato</b></div>').join("")+'</div>':'<p>Hozircha statistika uchun ma’lumot yo‘q.</p>')+'</section>';
+      updateNav("stats")
+    }
+    function launch(items,options){
+      if(!items.length){notify("Bu tanlovda yechish uchun savol yo‘q.");return}
+      const list=options&&options.shuffle?items.slice().sort(()=>Math.random()-.5):items.slice();
+      session={items:list,answers:{},checked:{},permutations:{},cursor:0,started:Date.now(),limit:options&&options.minutes?options.minutes*60:0,source:(options&&options.source)||"section",group:!!(options&&options.group),finished:false};
+      list.forEach(q=>{session.answers[q.id]=q.items?q.items.map(()=>null):[];session.permutations[q.id]=shuffle(q.items?(q.targets||[]).length:(q.o||[]).length)});
+      if(options&&options.group)syncParticipant("solving");
+      renderQuestion()
+    }
+    function shuffle(n){const a=Array.from({length:n},(_,i)=>i);for(let i=n-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+    function isReady(q){const a=session.answers[q.id]||[];if(q.items)return a.length===q.items.length&&a.every(x=>Number.isInteger(x)&&x>=0&&x<(q.targets||[]).length);return a.length===(q.m||1)&&a.every(x=>Number.isInteger(x)&&x>=0&&x<(q.o||[]).length)}
+    function isCorrect(q){const a=session.answers[q.id]||[];if(q.items)return a.length===q.a.length&&q.a.every((v,i)=>Number.isInteger(a[i])&&a[i]===v);return a.length===q.a.length&&q.a.every(v=>a.includes(v))}
+    function questionFeedback(q){
+      const ok=isCorrect(q),ans=session.answers[q.id]||[];
+      if(q.items){return '<div class="feedback '+(ok?"":"wrong")+'"><b>'+(ok?"To‘g‘ri!":"Noto‘g‘ri.")+'</b> '+html(q.e)+(q.u?'<small>'+html(q.u)+'</small>':"")+(ok?"":'<small>To‘g‘ri mosliklar: '+q.a.map((v,i)=>html(q.items[i])+" → "+html(q.targets[v])).join("; ")+'</small>')+'</div>'}
+      const correct=q.a.map(i=>q.o[i]).join("; ");
+      return '<div class="feedback '+(ok?"":"wrong")+'"><b>'+(ok?"To‘g‘ri!":"Noto‘g‘ri. To‘g‘ri javob: "+html(correct))+'</b> '+html(q.e)+(q.u?'<small>'+html(q.u)+'</small>':"")+'</div>'
+    }
+    function renderQuestion(){
+      if(!session)return;page="quiz";const q=session.items[session.cursor];if(!q){finishTest();return}
+      const i=session.cursor,answer=session.answers[q.id],checked=!!session.checked[q.id],showAnswer=state.immediate&&checked;
+      const letters="ABCDEFGH";
+      let answers="";
+      if(q.items){answers='<div class="pair-list">'+q.items.map((it,k)=>'<div class="pair-row"><code>'+html(it)+'</code><select data-match="'+k+'" '+(checked?"disabled":"")+'><option value="" '+(answer[k]===null?"selected":"")+'>Tanlang...</option>'+session.permutations[q.id].map(j=>'<option value="'+j+'" '+(answer[k]!==null&&answer[k]===j?"selected":"")+'>'+html(q.targets[j])+'</option>').join("")+'</select>'+(showAnswer&&answer[k]!==q.a[k]?'<small class="bad">To‘g‘ri: '+html(q.targets[q.a[k]])+'</small>':"")+'</div>').join("")+'</div>'}
+      else answers='<div class="answers">'+session.permutations[q.id].map((o,k)=>{const selected=answer.includes(o),right=q.a.includes(o);let cls=selected?" selected":"";if(showAnswer){if(selected&&right)cls=" ok";else if(selected)cls=" no";else if(right)cls=" missed"}return '<button class="answer'+cls+'" data-answer="'+o+'" aria-pressed="'+selected+'" '+(checked?"disabled":"")+"><span class=\"answer-key\">"+letters[k]+".</span><span class=\"answer-text\">"+html(q.o[o])+"</span></button>"}).join("")+'</div>';
+      const timer=session.limit?'<span class="pill" id="quizTimer"></span>':"";
+      app.innerHTML='<section class="panel"><div class="quiz-head"><h2>'+html(session.source==="universal"?"Universal test":session.source==="wrong"?"Xatolarni takrorlash":session.source==="group"?"Guruh testi":"Bo‘lim "+(sectionOf(q)+1))+'</h2><span>'+timer+' <span class="muted">'+(i+1)+' / '+session.items.length+'</span></span></div><div class="quiz-track"><i style="width:'+Math.round((i/session.items.length)*100)+'%"></i></div><div class="dots">'+session.items.map((item,k)=>'<button class="dot '+(k===i?"current ":"")+(session.checked[item.id]?(isCorrect(item)?"correct":"wrong"):session.answers[item.id]&&session.answers[item.id].some(x=>x!==null)?"answered":"")+'" data-jump="'+k+'" aria-label="Savol '+(k+1)+'"></button>').join("")+'</div></section><section class="question-card"><div class="q-meta"><span class="q-id">Savol #'+q.id+'</span><span class="pill">'+html(q.t)+'</span>'+(q.m?'<span class="pill">Bir nechta javob · '+q.m+'</span>':"")+'<button class="icon-btn" data-star="'+q.id+'" aria-label="Savolni saqlash">'+(record(q).starred?"★":"☆")+'</button><button class="icon-btn" data-master="'+q.id+'" title="Yodladim">'+(record(q).mastered?"✓":"✓+")+'</button></div><h1 class="question-text">'+html(q.q)+'</h1>'+([...((q.img&&IMAGES[q.img])?[q.img]:[]),...(q.extraImages||[])].filter(key=>IMAGES[key]).map((key,j)=>'<img class="exhibit" alt="Savolga tegishli rasm '+(j+1)+'" src="'+IMAGES[key]+'">').join(""))+(q.code?'<pre class="code">'+html(q.code)+'</pre>':"")+(q.note?'<p class="muted">'+html(q.note)+'</p>':"")+answers+(showAnswer?questionFeedback(q):"")+'<div class="quiz-actions"><div class="actions"><button class="btn" data-prev '+(i===0?"disabled":"")+'>← Oldingi</button><button class="btn" data-next>'+(i===session.items.length-1?"Yakunlash":"Keyingi →")+'</button><button class="btn soft" data-skip>O‘tkazib yuborish</button></div><button class="btn primary" data-check '+(!isReady(q)||checked?"disabled":"")+'>'+(checked?(state.immediate?"Tekshirildi":"Javob saqlandi"):(state.immediate?"Javobni tekshirish":"Javobni saqlash"))+'</button></div><div class="actions"><button class="btn danger" data-quit>Testdan chiqish</button></div></section>';
+      if(session.limit)startCountdown()
+    }
+    function startCountdown(){
+      clearInterval(session.clock);const draw=()=>{const left=Math.max(0,session.limit-Math.floor((Date.now()-session.started)/1000)),m=String(Math.floor(left/60)).padStart(2,"0"),s=String(left%60).padStart(2,"0"),el=document.getElementById("quizTimer");if(el)el.textContent="⏱ "+m+":"+s;if(left<=0){clearInterval(session.clock);finishTest(true)}};
+      draw();session.clock=setInterval(draw,1000)
+    }
+    function scoreOnce(q,ok){
+      if(session.scored&&session.scored[q.id])return;
+      session.scored=session.scored||{};session.scored[q.id]=true;
+      const r=record(q);r.attempts++;r.last=Date.now();state.daily[today()]=(state.daily[today()]||0)+1;
+      if(ok){r.correct++;r.streak++;if(r.streak>=(state.masteryTarget||2))r.mastered=true}
+      else{r.wrong++;r.streak=0}
+      save()
+    }
+    function finishTest(timeout){
+      if(!session||session.finished)return;
+      clearInterval(session.clock);
+      session.items.forEach(q=>{const ok=isReady(q)&&isCorrect(q);session.checked[q.id]=true;scoreOnce(q,ok)});
+      session.finished=true;const right=session.items.filter(q=>isCorrect(q)&&isReady(q)).length,wrong=session.items.length-right,elapsed=Math.round((Date.now()-session.started)/1000);
+      state.history.unshift({date:today(),right,total:session.items.length,elapsed,source:session.source});state.history=state.history.slice(0,200);save();
+      if(session.group)syncParticipant("done",right,elapsed);
+      renderResults(right,wrong,elapsed,timeout)
+    }
+    function renderResults(right,wrong,elapsed,timeout){
+      const weak={};session.items.filter(q=>!isCorrect(q)||!isReady(q)).forEach(q=>{const s=sections[sectionOf(q)];weak[s.title]=(weak[s.title]||0)+1});
+      const ranked=Object.entries(weak).sort((a,b)=>b[1]-a[1]);
+      app.innerHTML='<section class="panel"><div class="eyebrow muted">Test yakunlandi</div><div class="score-hero"><div class="score-big">'+right+' / '+session.items.length+'</div><span class="pill">'+pct(right,session.items.length)+'% natija</span></div><p>'+(timeout?"Vaqt tugadi. ":"")+(pct(right,session.items.length)>=80?"Yaxshi natija! Xatolarni ham ko‘rib chiqing.":"Xato javoblarni takrorlab, bilimingizni mustahkamlang.")+'</p><div class="actions"><span class="good">To‘g‘ri: <b>'+right+'</b></span><span class="bad">Xato: <b>'+wrong+'</b></span><span class="muted">Vaqt: '+Math.floor(elapsed/60)+' daqiqa '+elapsed%60+' soniya</span></div><p class="actions">'+(wrong?'<button class="btn primary" id="retryWrong">Xatolarni qayta yechish ('+wrong+')</button>':"")+'<button class="btn soft" data-go="home">Bosh sahifa</button></p></section>'+(ranked.length?'<section class="panel"><h2>Zaif bo‘limlar tahlili</h2><div class="weak-list">'+ranked.map(([name,n])=>'<div class="weak-row"><span>'+html(name)+'</span><b class="bad">'+n+' ta xato</b></div>').join("")+'</div></section>':"")+'<section class="panel"><h2>Javoblar tahlili</h2><div class="table-wrap"><table class="review-table"><thead><tr><th>#</th><th>Savol</th><th>Sizning javobingiz</th><th>To‘g‘ri javob va izoh</th><th>Natija</th></tr></thead><tbody>'+session.items.map(q=>{const ok=isReady(q)&&isCorrect(q),a=session.answers[q.id]||[];const yours=q.items?a.map((n,k)=>html(q.items[k])+": "+(n==null?"—":html(q.targets[n]))).join("<br>"):a.map(n=>html(q.o[n])).join("<br>")||"Javobsiz";const correct=q.items?q.a.map((n,k)=>html(q.items[k])+" → "+html(q.targets[n])).join("<br>"):q.a.map(n=>html(q.o[n])).join("<br>");return '<tr><td>'+q.id+'</td><td><b>'+html(q.t)+'</b><br>'+html(q.q)+'</td><td>'+yours+'</td><td>'+correct+'<br><span class="muted">'+html(q.e)+'</span></td><td class="'+(ok?"good":"bad")+'">'+(ok?"To‘g‘ri":"Xato")+'<br><button class="chip-btn" data-practice="'+q.id+'">Qayta yechish</button></td></tr>'}).join("")+'</tbody></table></div></section>';
+      updateNav("")
+    }
+    function syncParticipant(status,score,elapsed){
+      if(!supabaseClient||!roomCode||!authUid)return Promise.resolve();
+      const now=session?session.cursor+1:0,correct=score==null?(session&&session.scored?Object.keys(session.scored).filter(id=>session.scored[id]&&session.answers[id]&&session.items.find(q=>String(q.id)===id)&&isCorrect(session.items.find(q=>String(q.id)===id))).length:0):score;
+      return supabaseClient.from("netquiz_participants").update({name:state.name,status:status||"solving",progress:session?now:0,score:correct,elapsed:elapsed||0,updated_at:Date.now()}).eq("room_code",roomCode).eq("user_id",authUid).then(({error})=>{if(error)throw error}).catch(e=>notify("Guruhdagi progress yuborilmadi: "+e.message))
+    }
+    async function attachRoom(code){
+      if(roomChannel&&supabaseClient){await supabaseClient.removeChannel(roomChannel);roomChannel=null}
+      roomCode=code;roomSnapshot=null;groupStarted=false;
+      try{
+        const {error:joinError}=await supabaseClient.rpc("join_netquiz_room",{p_room_code:code,p_name:state.name});
+        if(joinError)throw joinError;
+        const refresh=async()=>{
+          if(roomCode!==code)return false;
+          const [roomResult,peopleResult]=await Promise.all([
+            supabaseClient.from("netquiz_rooms").select("*").eq("code",code).maybeSingle(),
+            supabaseClient.from("netquiz_participants").select("*").eq("room_code",code)
+          ]);
+          if(roomResult.error)throw roomResult.error;
+          if(peopleResult.error)throw peopleResult.error;
+          if(!roomResult.data){roomCode="";roomSnapshot=null;history.replaceState(null,"",location.pathname);notify("Xona topilmadi yoki o‘chirilgan.");renderGroup();return false}
+          const participants={};(peopleResult.data||[]).forEach(p=>{participants[p.user_id]=p});
+          roomSnapshot={code:roomResult.data.code,title:roomResult.data.title,owner:roomResult.data.owner_id,ownerName:roomResult.data.owner_name,state:roomResult.data.state,ids:roomResult.data.question_ids||[],createdAt:roomResult.data.created_at,participants};
+          if(page==="group")renderGroup();
+          if(roomSnapshot.state==="active"&&!groupStarted){groupStarted=true;if(!session||!session.group||session.finished)launch(roomSnapshot.ids.map(id=>QUESTIONS.find(q=>q.id===id)).filter(Boolean),{source:"group",group:true,shuffle:false})}
+          return true;
+        };
+        roomChannel=supabaseClient.channel("netquiz-room-"+code)
+          .on("postgres_changes",{event:"*",schema:"public",table:"netquiz_rooms",filter:"code=eq."+code},()=>refresh().catch(e=>notify("Xona ma’lumotini yuklab bo‘lmadi: "+e.message)))
+          .on("postgres_changes",{event:"*",schema:"public",table:"netquiz_participants",filter:"room_code=eq."+code},()=>refresh().catch(e=>notify("Ishtirokchilar ro‘yxati yuklanmadi: "+e.message)))
+          .subscribe((status,error)=>{if(status==="CHANNEL_ERROR"||status==="TIMED_OUT")notify("Xona real vaqt yangilanishi ulanmayapti."+(error?": "+error.message:""))});
+        return await refresh()
+      }catch(e){roomCode="";roomSnapshot=null;history.replaceState(null,"",location.pathname);notify("Xonaga qo‘shilmadi: "+e.message);renderGroup();return false}
+    }
+    async function connectSupabase(config){
+      if(!config||!config.url||!config.publishableKey)throw new Error("supabase-config.js faylida url va publishableKey qiymatlari bo‘lishi kerak.");
+      if(supabaseConnectPromise)return supabaseConnectPromise;
+      supabaseConnectPromise=(async()=>{
+        const {createClient}=await import("https://esm.sh/@supabase/supabase-js@2");
+        supabaseClient=createClient(config.url,config.publishableKey);
+        const {data,error}=await supabaseClient.auth.getSession();
+        if(error)throw error;
+        if(!data.session){const result=await supabaseClient.auth.signInAnonymously();if(result.error)throw result.error;authUid=result.data.user.id}
+        else authUid=data.session.user.id;
+        return true
+      })();
+      try{const connected=await supabaseConnectPromise;supabaseError="";return connected}catch(e){supabaseClient=null;authUid=null;supabaseError=/anonymous sign-ins are disabled/i.test(e.message)?"Supabase Dashboard’da Authentication → Sign In / Providers’dan Anonymous sign-ins’ni yoqing.":e.message;throw e}finally{supabaseConnectPromise=null}
+    }
+    function selectGroupQuestions(){
+      const mode=document.getElementById("groupMode").value,countVal=document.getElementById("groupCount").value,count=countVal==="custom"?Number(document.getElementById("groupCustomCount").value):Number(countVal);
+      let candidates=mode==="section"?sections[Number(document.getElementById("groupSection").value)].questions:QUESTIONS;
+      if(!Number.isInteger(count)||count<1){notify("Savollar sonini to‘g‘ri kiriting.");return null}
+      return candidates.slice().sort(()=>Math.random()-.5).slice(0,Math.min(count,candidates.length)).map(q=>q.id)
+    }
+    async function createRoom(){
+      try{const ids=selectGroupQuestions();if(!ids)return;let code;do{code=Array.from(crypto.getRandomValues(new Uint8Array(6)),v=>"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"[v%36]).join("")}while(!code);
+        const mode=document.getElementById("groupMode").value,{error}=await supabaseClient.from("netquiz_rooms").insert({code,title:mode==="section"?sections[Number(document.getElementById("groupSection").value)].title:"Universal test",owner_id:authUid,owner_name:state.name,state:"lobby",question_ids:ids,created_at:Date.now()});
+        if(error)throw error;
+        history.replaceState(null,"",location.pathname+"?room="+code);if(await attachRoom(code))notify("Xona yaratildi. Do‘stlaringizga kodni yuboring.")
+      }catch(e){notify("Xona yaratilmadi: "+e.message)}
+    }
+    async function joinRoom(code){
+      try{code=String(code||"").trim().toUpperCase();if(!/^[A-Z0-9]{6}$/.test(code)){notify("Xona kodi 6 ta harf yoki raqamdan iborat.");return}
+        history.replaceState(null,"",location.pathname+"?room="+code);await attachRoom(code)
+      }catch(e){notify("Xonaga ulanib bo‘lmadi: "+e.message)}
+    }
+    function leaveRoom(){
+      if(!supabaseClient||!roomCode)return;
+      const code=roomCode;
+      if(roomChannel)supabaseClient.removeChannel(roomChannel).catch(e=>notify("Xona yangilanishi uzilmadi: "+e.message));
+      roomChannel=null;roomCode="";roomSnapshot=null;history.replaceState(null,"",location.pathname);renderGroup();
+      supabaseClient.from("netquiz_participants").delete().eq("room_code",code).eq("user_id",authUid).then(({error})=>{if(error)notify("Xonadan chiqilmadi: "+error.message)})
+    }
+    function showNameModal(){
+      if(document.getElementById("nameModal"))return;
+      const m=document.createElement("div");m.id="nameModal";m.className="modal-back";m.innerHTML='<section class="modal"><div class="brand-mark">N</div><h2>NetQuiz’ga xush kelibsiz!</h2><p>Davom etish uchun ismingizni kiriting. Hisob ochish talab qilinmaydi.</p><div class="field"><label for="nameInput">Ismingiz</label><input id="nameInput" maxlength="30" autocomplete="given-name" placeholder="Masalan, Aziz"></div><div class="actions" style="margin-top:15px"><button class="btn primary" id="saveName">Davom etish</button></div></section>';document.body.appendChild(m);document.getElementById("nameInput").focus()
+    }
+    function setName(){const input=document.getElementById("nameInput"),name=input.value.trim();if(!name){notify("Iltimos, ismingizni kiriting.");input.focus();return}state.name=name;save();document.getElementById("nameModal").remove();renderHome();autoJoinRoom()}
+    function autoJoinRoom(){const incoming=new URLSearchParams(location.search).get("room");if(!incoming||!state.name||roomCode)return;const cfg=window.NETQUIZ_SUPABASE_CONFIG;if(!supabaseClient||!authUid){if(!cfg){notify("Xona havolasiga ulanish uchun Supabase sozlamasi kerak.");return}connectSupabase(cfg).then(()=>joinRoom(incoming)).catch(e=>notify("Guruhga avtomatik ulanilmadi: "+e.message));return}joinRoom(incoming)}
+    document.addEventListener("click",async e=>{
+      const b=e.target.closest("button");if(!b)return;
+      if(b.id==="saveName"){setName();return}
+      if(b.dataset.page){({home:renderHome,universal:renderUniversal,mistakes:renderMistakes,stars:renderStars,stats:renderStats,group:renderGroup,settings:renderSettings})[b.dataset.page]();return}
+      if(b.dataset.go){({home:renderHome,universal:renderUniversal,mistakes:renderMistakes,group:renderGroup,settings:renderSettings})[b.dataset.go]();return}
+      if(b.id==="fontDown"){state.font=Math.max(14,(state.font||16)-1);save();applyTheme();return}
+      if(b.id==="fontUp"){state.font=Math.min(22,(state.font||16)+1);save();applyTheme();return}
+      if(b.id==="themeBtn"){const current=state.theme==="auto"?(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):state.theme;state.theme=current==="light"?"dark":current==="dark"?"sepia":"light";save();applyTheme();return}
+      if(b.dataset.editTitle!==undefined){const idx=Number(b.dataset.editTitle),title=prompt("Bo‘lim uchun yangi nom:",sections[idx].title);if(title&&title.trim()){state.titles[idx]=title.trim();sections[idx].title=title.trim();save();renderHome()}return}
+      if(b.dataset.startSection!==undefined||b.dataset.reviewSection!==undefined){const idx=Number(b.dataset.startSection!==undefined?b.dataset.startSection:b.dataset.reviewSection);showSectionSetup(idx);return}
+      if(b.id==="beginSection"){const idx=Number(b.dataset.section),countValue=document.getElementById("sectionCount").value,mode=document.getElementById("sectionMode").value;let n=countValue==="custom"?Number(document.getElementById("sectionCustom").value):Number(countValue),items=sections[idx].questions.slice();if(!Number.isInteger(n)||n<1){notify("Savollar sonini to‘g‘ri kiriting.");return}if(mode==="wrong")items=items.filter(q=>record(q).wrong>0);if(!items.length){notify("Bu bo‘limda xato qilingan savollar yo‘q.");return}n=Math.min(n,items.length);if(mode==="shuffle"||mode==="wrong")items=items.sort(()=>Math.random()-.5);items=items.slice(0,n);state.immediate=document.getElementById("sectionCheck").value==="immediate";save();const timerValue=document.getElementById("sectionTimer").value,minutes=timerValue==="custom"?Number(document.getElementById("sectionCustomTimer").value):Number(timerValue);if(timerValue==="custom"&&(!Number.isFinite(minutes)||minutes<1)){notify("Taymer vaqtini daqiqada kiriting.");return}document.getElementById("sectionModal").remove();activeSection=idx;launch(items,{source:mode==="wrong"?"wrong":"section",shuffle:mode==="shuffle",minutes});return}
+      if(b.id==="cancelSection"){document.getElementById("sectionModal").remove();return}
+      if(b.id==="startUniversal"){const nVal=document.getElementById("uniCount").value,count=nVal==="custom"?Number(document.getElementById("uniCustom").value):Number(nVal),pool=document.getElementById("uniPool").value;let candidates=QUESTIONS;if(pool==="unmastered")candidates=QUESTIONS.filter(q=>!record(q).mastered);if(pool==="weak")candidates=QUESTIONS.filter(q=>record(q).wrong>0);if(!Number.isInteger(count)||count<1){notify("Savollar sonini to‘g‘ri kiriting.");return}if(!candidates.length){notify("Bu tanlovda savollar qolmagan.");return}if(document.getElementById("uniCheck").value==="immediate")state.immediate=true;else state.immediate=false;save();const n=Math.min(count,candidates.length),selected=pool==="weak"?orderByWeakness(candidates).slice(0,n):candidates.slice().sort(()=>Math.random()-.5).slice(0,n);let t=document.getElementById("uniTimer").value,mins=t==="custom"?Number(document.getElementById("uniCustomTimer").value):Number(t);if(t==="custom"&&(!Number.isFinite(mins)||mins<1)){notify("Taymer vaqtini daqiqada kiriting.");return}launch(selected,{source:"universal",minutes:mins,shuffle:false});return}
+      if(b.matches("[data-check]")){const q=session.items[session.cursor];if(!isReady(q)){notify("Avval javobni belgilang.");return}session.checked[q.id]=true;if(state.immediate)scoreOnce(q,isCorrect(q));renderQuestion();return}
+      if(b.dataset.answer!==undefined){const q=session.items[session.cursor];if(state.immediate&&session.checked[q.id])return;const a=session.answers[q.id],v=Number(b.dataset.answer),k=a.indexOf(v);if(q.m){if(k>=0)a.splice(k,1);else if(a.length<(q.m||1))a.push(v)}else session.answers[q.id]=[v];if(state.immediate&&!q.m&&isReady(q)){session.checked[q.id]=true;scoreOnce(q,isCorrect(q))}renderQuestion();return}
+      if(b.dataset.next!==undefined){if(session.cursor===session.items.length-1){finishTest();return}session.cursor++;renderQuestion();if(session.group)syncParticipant("solving");return}
+      if(b.dataset.prev!==undefined){session.cursor=Math.max(0,session.cursor-1);renderQuestion();return}
+      if(b.dataset.skip!==undefined){if(session.cursor<session.items.length-1){session.cursor++;renderQuestion();if(session.group)syncParticipant("solving")}else finishTest();return}
+      if(b.dataset.jump!==undefined){session.cursor=Number(b.dataset.jump);renderQuestion();return}
+      if(b.dataset.star!==undefined){const r=record(QUESTIONS.find(q=>q.id===Number(b.dataset.star)));r.starred=!r.starred;save();if(session)renderQuestion();else page==="stars"?renderStars():renderMistakes();return}
+      if(b.dataset.master!==undefined){const q=QUESTIONS.find(q=>q.id===Number(b.dataset.master)),r=record(q);r.mastered=!r.mastered;if(r.mastered)r.streak=Math.max(r.streak,state.masteryTarget);else r.streak=0;save();renderQuestion();notify(r.mastered?"Savol yodlangan deb belgilandi.":"Yodlangan belgisi olib tashlandi.");return}
+      if(b.dataset.practice!==undefined){const q=QUESTIONS.find(x=>x.id===Number(b.dataset.practice));if(q)launch([q],{source:"wrong"});return}
+      if(b.id==="retryWrong"){const list=session.items.filter(q=>!isCorrect(q)||!isReady(q));launch(list,{source:"wrong"});return}
+      if(b.id==="retryAllWrong"){const list=QUESTIONS.filter(q=>record(q).wrong>0);if(list.length)launch(list,{source:"wrong",shuffle:true});return}
+      if(b.dataset.quit!==undefined){if(confirm("Testdan chiqishni xohlaysizmi? Tugallanmagan test natijasi hisoblanmaydi.")){clearInterval(session.clock);session=null;renderHome()}return}
+      if(b.id==="changeName"){const n=prompt("Ismingiz:",state.name);if(n&&n.trim()){state.name=n.trim().slice(0,30);save();renderSettings()}return}
+      if(b.id==="exportData"){const blob=new Blob([JSON.stringify({version:1,state},null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="netquiz-progress-"+today()+".json";a.click();URL.revokeObjectURL(a.href);return}
+      if(b.id==="importData"){document.getElementById("importFile").click();return}
+      if(b.id==="resetData"){if(confirm("Barcha progress, yulduzcha va statistika o‘chirilsinmi? Bu amalni qaytarib bo‘lmaydi.")){state=Object.assign({},defaultState,{name:state.name,theme:state.theme,font:state.font});save();renderHome();notify("Progress tiklandi.")}return}
+      if(b.id==="createRoom"){await createRoom();return}
+      if(b.id==="connectSupabase"){try{await connectSupabase(window.NETQUIZ_SUPABASE_CONFIG);renderGroup();autoJoinRoom()}catch(err){notify("Supabase’ga ulanilmadi: "+err.message);renderGroup()}return}
+      if(b.id==="joinRoom"){joinRoom(document.getElementById("groupCode").value);return}
+      if(b.id==="leaveRoom"){leaveRoom();return}
+      if(b.id==="startGroup"){try{const {error}=await supabaseClient.from("netquiz_rooms").update({state:"active"}).eq("code",roomCode);if(error)throw error}catch(err){notify("Testni boshlashda xato: "+err.message)}return}
+      if(b.id==="enterGroupTest"&&roomSnapshot){groupStarted=true;launch((roomSnapshot.ids||[]).map(id=>QUESTIONS.find(q=>q.id===id)).filter(Boolean),{source:"group",group:true});return}
+    });
+    function renderSearchResults(input){
+      const term=input.value.trim().toLocaleLowerCase(),out=document.getElementById("searchResults");if(out&&term){const matches=QUESTIONS.filter(q=>(q.q+" "+q.t).toLocaleLowerCase().includes(term)).slice(0,30);out.innerHTML='<div class="question-list" style="margin-top:10px">'+(matches.length?matches.map(q=>'<div class="question-row"><div><b>#'+q.id+' · '+html(q.t)+'</b><p>'+html(q.q)+'</p></div><button class="btn soft" data-practice="'+q.id+'">Yechish</button></div>').join(""):'<p class="muted">Mos savol topilmadi.</p>')+'</div>'}else if(out)out.innerHTML=""
+    }
+    document.addEventListener("input",e=>{if(e.target.id==="questionSearch")renderSearchResults(e.target)});
+    document.addEventListener("change",e=>{
+      if(e.target.id==="uniCount")document.getElementById("uniCustom").classList.toggle("hidden",e.target.value!=="custom");
+      if(e.target.id==="uniTimer")document.getElementById("uniCustomTimer").classList.toggle("hidden",e.target.value!=="custom");
+      if(e.target.id==="groupCount")document.getElementById("groupCustomCount").classList.toggle("hidden",e.target.value!=="custom");
+      if(e.target.id==="immediateSetting"){state.immediate=e.target.checked;save()}
+      if(e.target.id==="masteryTarget"){state.masteryTarget=Number(e.target.value);save()}
+      if(e.target.matches("[data-match]")&&session){const q=session.items[session.cursor],k=Number(e.target.dataset.match);session.answers[q.id][k]=e.target.value===""?null:Number(e.target.value);const c=document.querySelector("[data-check]");if(c)c.disabled=!isReady(q)||!!session.checked[q.id]}
+      if(e.target.id==="sectionCount")document.getElementById("sectionCustom").classList.toggle("hidden",e.target.value!=="custom");
+      if(e.target.id==="sectionTimer")document.getElementById("sectionCustomTimer").classList.toggle("hidden",e.target.value!=="custom");
+      if(e.target.id==="importFile"&&e.target.files[0]){const f=e.target.files[0],r=new FileReader();r.onload=()=>{try{const obj=JSON.parse(r.result);const incoming=obj.state||obj;if(!incoming.records||!incoming.daily)throw new Error("Progress fayli formati tanilmadi.");if(confirm("Joriy progress import qilinib almashtirilsinmi?")){state=Object.assign({},defaultState,incoming);save();applyTheme();renderHome();notify("Progress import qilindi.")}}catch(err){notify("Import muvaffaqiyatsiz: "+err.message)}};r.onerror=()=>notify("Faylni o‘qib bo‘lmadi.");r.readAsText(f);e.target.value=""}
+    });
+    document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.id==="nameInput")setName()});
+    applyTheme();
+    if(!QUESTIONS.length){app.innerHTML='<section class="panel"><h2>Savollar bazasi yuklanmadi</h2><p>questions.js fayli index.html bilan bir papkada ekanini tekshiring.</p></section>'}
+    else if(!state.name)showNameModal();else renderHome();
+    if(storageError)notify(storageError);
+    const config=window.NETQUIZ_SUPABASE_CONFIG;if(config)connectSupabase(config).then(()=>{if(page==="group")renderGroup();autoJoinRoom()}).catch(e=>{if(page==="group")renderGroup();notify("Supabase’ga ulanilmadi: "+e.message)})
+  })();
+  </script>
+</body>
+</html>
