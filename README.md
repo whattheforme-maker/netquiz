@@ -1,10 +1,12 @@
 # NetQuiz — CCNA tayyorgarlik
 
-Sayt CCNA savollar bankini interaktiv testga aylantiradi. `questions.js` faylida 1 009 ta savol va 276 ta rasm bor. Yakka testlar offline ishlaydi; progress brauzer xotirasida saqlanadi. Guruh xonalari Supabase orqali ishlaydi.
+Sayt CCNA savollar bankini interaktiv testga aylantiradi. `questions.js` faylida 1 009 ta savol va 276 ta rasm yo‘li bor; rasm fayllari `images/` papkasida alohida saqlanadi va faqat kerak bo‘lganda yuklanadi. Yakka testlar offline ishlaydi; progress brauzer xotirasida saqlanadi. Guruh xonalari Supabase orqali ishlaydi.
 
 ## Ishlatish va hostga joylash
 
-`index.html`, `questions.js` va `supabase-config.js` fayllarini bir papkada saqlang. GitHub Pages’da **Settings → Pages** orqali `main` branch va `/ (root)` papkasini yoqing. Uchala faylni repository asosiy papkasiga yuklang.
+Lokal sinash uchun `npx serve` buyrug‘ini ishga tushiring. Hostga `index.html`, `questions.js`, `supabase-config.js` fayllari va butun `images/` papkasini deploy qiling. GitHub Pages’da **Settings → Pages** orqali `main` branch va `/ (root)` papkasini yoqing.
+
+`extract-images.js` bir martalik migratsiya skripti: u base64 rasmlarni `images/` papkasiga chiqaradi. Muvaffaqiyatli ishlagandan keyin uni qayta ishga tushirish shart emas; skriptni migratsiya uchun repo’da qoldirish mumkin. `questions.backup.js` Git’ga qo‘shilmaydi.
 
 ## Supabase’ni bir marta sozlash
 
@@ -12,6 +14,6 @@ Sayt CCNA savollar bankini interaktiv testga aylantiradi. `questions.js` faylida
 2. **SQL Editor**’da [supabase-schema.sql](./supabase-schema.sql) faylidagi SQL’ni bir marta ishga tushiring.
 3. **Database → Publications** bo‘limida `supabase_realtime` uchun `netquiz_rooms` va `netquiz_participants` jadvallarini yoqing.
 4. `supabase-config.js` faylida Supabase **Project URL** va brauzer uchun **Publishable key** bo‘lishi kerak. URL formati `https://<project-ref>.supabase.co`; oxiriga `/rest/v1/` qo‘shilmaydi.
-5. Uchala faylni hostingga yuklang. Foydalanuvchilar akkaunt yaratmaydi: sayt har bir brauzer uchun anonim Supabase sessiyasini ochadi; xona kodi yoki havola orqali bir testga birlashadi.
+5. Sayt fayllari va `images/` papkasini hostingga yuklang. Foydalanuvchilar akkaunt yaratmaydi: sayt har bir brauzer uchun anonim Supabase sessiyasini ochadi; xona kodi yoki havola orqali bir testga birlashadi.
 
 Publishable key brauzerda ishlatish uchun mo‘ljallangan ochiq kalit. `service_role` yoki secret key’ni `index.html`, konfiguratsiya fayli yoki boshqa frontend kodga qo‘ymang. RLS siyosatlari ma’lumotlarni xona a’zolari bilan cheklaydi; ularni qo‘llamasdan jadvallarni ochiq qoldirmang.
