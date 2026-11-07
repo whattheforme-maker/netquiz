@@ -148,7 +148,7 @@
     const defaultState={name:"",theme:"auto",font:16,masteryTarget:2,immediate:true,records:{},titles:{},daily:{},history:[]};
     let storageError="";
     let state=loadState(),page="home",session=null,activeSection=0,toastTimer=null;
-    let supabaseClient=null,authUid=null,roomCode="",roomChannel=null,roomSnapshot=null,groupStarted=false,supabaseConnectPromise=null,supabaseError="",roomRealtimeStatus="CLOSED",roomPollTimer=null,roomHealthTimer=null,roomRefreshTask=null,roomRefreshQueued=false,roomSubscribeTask=null,participantWriteTimer=null,participantWriteChain=Promise.resolve(),participantFlashIds=new Set(),participantFlashTimers=new Map();
+    let supabaseClient=null,authUid=null,roomCode="",roomChannel=null,roomSnapshot=null,groupStarted=false,roomDeleteHandling=false,supabaseConnectPromise=null,supabaseError="",roomRealtimeStatus="CLOSED",roomPollTimer=null,roomHealthTimer=null,roomRefreshTask=null,roomRefreshQueued=false,roomSubscribeTask=null,participantWriteTimer=null,participantWriteChain=Promise.resolve(),participantFlashIds=new Set(),participantFlashTimers=new Map();
     const html=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
     function loadState(){try{const saved=JSON.parse(localStorage.getItem(STORE)||"{}");return Object.assign({},defaultState,saved,{records:saved.records||{},titles:saved.titles||{},daily:saved.daily||{},history:saved.history||[]})}catch(e){storageError="Saqlangan progressni o‘qib bo‘lmadi. Sozlamalardan zaxira faylini import qiling.";return Object.assign({},defaultState)}}
     function save(){try{localStorage.setItem(STORE,JSON.stringify(state))}catch(e){notify("Saqlash amalga oshmadi. Brauzer xotirasi to'lgan bo'lishi mumkin.")}}
@@ -194,7 +194,7 @@
     function renderRoom(){
       if(!roomCode||!roomSnapshot)return "";
       const room=roomSnapshot,players=room.participants||{},isOwner=room.owner===authUid,ids=room.ids||[];
-      return '<section class="panel"><div class="section-head"><div><div class="eyebrow muted">Xona '+html(roomCode)+'</div><h2>'+html(room.title||"CCNA test")+'</h2><p>'+ids.length+' ta savol · Holati: '+(room.state==="active"?"Test davom etmoqda":"Kutmoqda")+'</p></div><button class="btn danger" id="leaveRoom">Xonadan chiqish</button></div><p><label>Taklif havolasi <input class="search-input" readonly value="'+html(location.origin+location.pathname+'?room='+roomCode)+'"></label></p><div class="section-head"><div><h2>Ishtirokchilar ('+Object.keys(players).length+')</h2></div></div><div class="question-list">'+Object.keys(players).map(uid=>{const p=players[uid]||{};return '<div class="question-row"><b>'+html(p.name||"Ishtirokchi")+(uid===room.owner?" · Xona egasi":"")+'</b><span class="pill">'+(p.status==="done"?"Tugatdi":p.status==="solving"?"Yechmoqda":"Kutmoqda")+' · '+(p.progress||0)+'/'+ids.length+(p.status==="done"?" · "+(p.score||0)+" to‘g‘ri · "+(Math.floor((p.elapsed||0)/60))+" daq":"")+'</span></div>'}).join("")+'</div><div class="actions" style="margin-top:14px">'+(isOwner&&room.state==="lobby"?'<button class="btn primary" id="startGroup">Hamma uchun boshlash</button>':'')+(room.state==="active"&&!(session&&session.group&&!session.finished)?'<button class="btn primary" id="enterGroupTest">Testga qaytish</button>':'')+'</div></section>'
+      return '<section class="panel"><div class="section-head"><div><div class="eyebrow muted">Xona '+html(roomCode)+'</div><h2>'+html(room.title||"CCNA test")+'</h2><p>'+ids.length+' ta savol · Holati: '+(room.state==="active"?"Test davom etmoqda":"Kutmoqda")+'</p></div><div class="actions"><button class="btn danger" id="leaveRoom">Xonadan chiqish</button>'+(room.owner===authUid?'<button class="btn danger" id="deleteRoom">Xonani o‘chirish</button>':"")+'</div></div><p><label>Taklif havolasi <input class="search-input" readonly value="'+html(location.origin+location.pathname+'?room='+roomCode)+'"></label></p><div class="section-head"><div><h2>Ishtirokchilar ('+Object.keys(players).length+')</h2></div></div><div class="question-list">'+Object.keys(players).map(uid=>{const p=players[uid]||{};return '<div class="question-row"><b>'+html(p.name||"Ishtirokchi")+(uid===room.owner?" · Xona egasi":"")+'</b><span class="pill">'+(p.status==="done"?"Tugatdi":p.status==="solving"?"Yechmoqda":"Kutmoqda")+' · '+(p.progress||0)+'/'+ids.length+(p.status==="done"?" · "+(p.score||0)+" to‘g‘ri · "+(Math.floor((p.elapsed||0)/60))+" daq":"")+'</span></div>'}).join("")+'</div><div class="actions" style="margin-top:14px">'+(isOwner&&room.state==="lobby"?'<button class="btn primary" id="startGroup">Hamma uchun boshlash</button>':'')+(room.state==="active"&&!(session&&session.group&&!session.finished)?'<button class="btn primary" id="enterGroupTest">Testga qaytish</button>':'')+'</div></section>'
     }
     function renderMistakes(){
       page="mistakes";const list=QUESTIONS.filter(q=>record(q).wrong>0).sort((a,b)=>record(b).wrong-record(a).wrong);
@@ -343,7 +343,7 @@
         if(roomResult.error)throw roomResult.error;
         if(peopleResult.error)throw peopleResult.error;
         if(roomCode!==code)return false;
-        if(!roomResult.data){roomCode="";roomSnapshot=null;history.replaceState(null,"",location.pathname);notify("Xona topilmadi yoki o‘chirilgan.");renderGroup();closeRoomRealtime();return false}
+        if(!roomResult.data){handleRoomDeleted(code);return false}
         const participants={};(peopleResult.data||[]).forEach(p=>{participants[p.user_id]=p});
         markChangedParticipants(participants);
         roomSnapshot={code:roomResult.data.code,title:roomResult.data.title,owner:roomResult.data.owner_id,ownerName:roomResult.data.owner_name,state:roomResult.data.state,ids:roomResult.data.question_ids||[],createdAt:roomResult.data.created_at,participants};
@@ -358,9 +358,21 @@
       if(roomPollTimer)return;
       roomPollTimer=setInterval(async()=>{
         if(roomCode!==code){clearInterval(roomPollTimer);roomPollTimer=null;return}
-        try{await refreshRoom(code)}catch(e){roomRealtimeStatus="ERROR";updateGroupLivePanel()}
-        if(roomCode===code&&roomRealtimeStatus!=="SUBSCRIBED")await subscribeRoomRealtime(code,true)
-      },7000)
+        try{
+          const {data,error}=await supabaseClient.from("netquiz_rooms").select("code").eq("code",code).maybeSingle();
+          if(error)throw error;
+          if(!data){handleRoomDeleted(code);return}
+          if(roomRealtimeStatus!=="SUBSCRIBED"){
+            await refreshRoom(code);
+            if(roomCode===code&&roomRealtimeStatus!=="SUBSCRIBED")await subscribeRoomRealtime(code,true)
+          }
+        }catch(e){
+          if(roomCode!==code)return;
+          const wasError=roomRealtimeStatus==="ERROR";
+          roomRealtimeStatus="ERROR";updateGroupLivePanel();
+          if(!wasError)notify("Xona holatini tekshirib bo‘lmadi: "+e.message)
+        }
+      },10000)
     }
     function monitorRoomRealtime(code,channel){
       clearInterval(roomHealthTimer);
@@ -381,12 +393,15 @@
         if(roomCode!==code)return;
         roomRealtimeStatus="CONNECTING";updateGroupLivePanel();
         const channel=supabaseClient.channel("netquiz-room-"+code)
-          .on("postgres_changes",{event:"*",schema:"public",table:"netquiz_rooms",filter:"code=eq."+code},()=>refreshRoom(code).catch(e=>{roomRealtimeStatus="ERROR";updateGroupLivePanel();notify("Xona ma’lumotini yuklab bo‘lmadi: "+e.message)}))
-          .on("postgres_changes",{event:"*",schema:"public",table:"netquiz_participants",filter:"room_code=eq."+code},()=>refreshRoom(code).catch(e=>{roomRealtimeStatus="ERROR";updateGroupLivePanel();notify("Ishtirokchilar ro‘yxati yuklanmadi: "+e.message)}))
+          .on("postgres_changes",{event:"UPDATE",schema:"public",table:"netquiz_rooms",filter:"code=eq."+code},()=>refreshRoom(code).catch(e=>{roomRealtimeStatus="ERROR";updateGroupLivePanel();notify("Xona ma’lumotini yuklab bo‘lmadi: "+e.message)}))
+          .on("postgres_changes",{event:"DELETE",schema:"public",table:"netquiz_rooms"},payload=>{if(payload.old&&payload.old.code===code)handleRoomDeleted(code)})
+          .on("postgres_changes",{event:"INSERT",schema:"public",table:"netquiz_participants",filter:"room_code=eq."+code},()=>refreshRoom(code).catch(e=>{roomRealtimeStatus="ERROR";updateGroupLivePanel();notify("Ishtirokchilar ro‘yxati yuklanmadi: "+e.message)}))
+          .on("postgres_changes",{event:"UPDATE",schema:"public",table:"netquiz_participants",filter:"room_code=eq."+code},()=>refreshRoom(code).catch(e=>{roomRealtimeStatus="ERROR";updateGroupLivePanel();notify("Ishtirokchilar ro‘yxati yuklanmadi: "+e.message)}))
+          .on("postgres_changes",{event:"DELETE",schema:"public",table:"netquiz_participants"},()=>refreshRoom(code).catch(e=>{roomRealtimeStatus="ERROR";updateGroupLivePanel();notify("Ishtirokchilar ro‘yxati yuklanmadi: "+e.message)}))
           .subscribe((status,error)=>{
             if(roomChannel!==channel)return;
             roomRealtimeStatus=status;
-            if(status==="SUBSCRIBED"){clearInterval(roomPollTimer);roomPollTimer=null;monitorRoomRealtime(code,channel);refreshRoom(code).catch(e=>notify("Xona yangilanmadi: "+e.message))}
+            if(status==="SUBSCRIBED"){startRoomPolling(code);monitorRoomRealtime(code,channel);refreshRoom(code).catch(e=>notify("Xona yangilanmadi: "+e.message))}
             else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"||status==="CLOSED")startRoomPolling(code);
             updateGroupLivePanel();
             if((status==="CHANNEL_ERROR"||status==="TIMED_OUT")&&error)notify("Realtime uzildi; qayta ulanishga uriniladi: "+error.message)
@@ -397,7 +412,7 @@
     }
     async function attachRoom(code){
       if(roomCode!==code)closeRoomRealtime();
-      roomCode=code;roomSnapshot=null;groupStarted=false;
+      roomCode=code;roomSnapshot=null;groupStarted=false;roomDeleteHandling=false;
       try{
         const {data:participant,error:participantError}=await supabaseClient.from("netquiz_participants").select("user_id").eq("room_code",code).eq("user_id",authUid).maybeSingle();
         if(participantError)throw participantError;
@@ -452,6 +467,26 @@
       roomCode="";roomSnapshot=null;history.replaceState(null,"",location.pathname);renderGroup();
       supabaseClient.from("netquiz_participants").delete().eq("room_code",code).eq("user_id",authUid).then(({error})=>{if(error)notify("Xonadan chiqilmadi: "+error.message)})
     }
+    function handleRoomDeleted(code){
+      if(!code||roomCode!==code||roomDeleteHandling)return;
+      roomDeleteHandling=true;
+      if(session&&session.group){clearInterval(session.clock);session=null}
+      roomCode="";roomSnapshot=null;groupStarted=false;roomRefreshQueued=false;
+      participantFlashTimers.forEach(timer=>clearTimeout(timer));participantFlashTimers.clear();participantFlashIds.clear();
+      closeRoomRealtime();
+      history.replaceState(null,"",location.pathname);
+      renderGroup();notify("Xona egasi tomonidan o‘chirildi")
+    }
+    async function deleteRoom(){
+      const code=roomCode;
+      if(!code||!roomSnapshot||roomSnapshot.owner!==authUid)return;
+      if(!confirm("Xona hamma ishtirokchilar uchun o‘chiriladi. Davom etasizmi?"))return;
+      try{
+        const {error}=await supabaseClient.from("netquiz_rooms").delete().eq("code",code);
+        if(error)throw error;
+        handleRoomDeleted(code)
+      }catch(e){if(roomCode===code)notify("Xonani o‘chirib bo‘lmadi: "+e.message)}
+    }
     function showNameModal(){
       if(document.getElementById("nameModal"))return;
       const m=document.createElement("div");m.id="nameModal";m.className="modal-back";m.innerHTML='<section class="modal"><div class="brand-mark">N</div><h2>NetQuiz’ga xush kelibsiz!</h2><p>Davom etish uchun ismingizni kiriting. Hisob ochish talab qilinmaydi.</p><div class="field"><label for="nameInput">Ismingiz</label><input id="nameInput" maxlength="30" autocomplete="given-name" placeholder="Masalan, Aziz"></div><div class="actions" style="margin-top:15px"><button class="btn primary" id="saveName">Davom etish</button></div></section>';document.body.appendChild(m);document.getElementById("nameInput").focus()
@@ -491,6 +526,7 @@
       if(b.id==="connectSupabase"){try{await connectSupabase(window.NETQUIZ_SUPABASE_CONFIG);renderGroup();autoJoinRoom()}catch(err){notify("Supabase’ga ulanilmadi: "+err.message);renderGroup()}return}
       if(b.id==="joinRoom"){joinRoom(document.getElementById("groupCode").value);return}
       if(b.id==="leaveRoom"){leaveRoom();return}
+      if(b.id==="deleteRoom"){await deleteRoom();return}
       if(b.id==="startGroup"){try{const {error}=await supabaseClient.from("netquiz_rooms").update({state:"active"}).eq("code",roomCode);if(error)throw error}catch(err){notify("Testni boshlashda xato: "+err.message)}return}
       if(b.id==="enterGroupTest"&&roomSnapshot){groupStarted=true;await subscribeRoomRealtime(roomCode,false);launch((roomSnapshot.ids||[]).map(id=>QUESTIONS.find(q=>q.id===id)).filter(Boolean),{source:"group",group:true});return}
     });
