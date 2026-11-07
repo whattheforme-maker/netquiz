@@ -148,7 +148,7 @@
     const defaultState={name:"",theme:"auto",font:16,masteryTarget:2,immediate:true,records:{},titles:{},daily:{},history:[]};
     let storageError="";
     let state=loadState(),page="home",session=null,activeSection=0,toastTimer=null;
-    let supabaseClient=null,authUid=null,roomCode="",roomChannel=null,roomSnapshot=null,groupStarted=false,roomDeleteHandling=false,supabaseConnectPromise=null,supabaseError="",roomRealtimeStatus="CLOSED",roomPollTimer=null,roomHealthTimer=null,roomRefreshTask=null,roomRefreshQueued=false,roomSubscribeTask=null,participantWriteTimer=null,participantWriteChain=Promise.resolve(),participantFlashIds=new Set(),participantFlashTimers=new Map();
+    let supabaseClient=null,authUid=null,roomCode="",roomChannel=null,roomSnapshot=null,groupStarted=false,roomDeleteHandling=false,supabaseConnectPromise=null,supabaseError="",roomRealtimeStatus="CLOSED",roomPollTimer=null,roomHealthTimer=null,roomRefreshTask=null,roomRefreshQueued=false,roomSubscribeTask=null,participantWriteTimer=null,participantLastActivityAt=0,participantWriteChain=Promise.resolve(),participantFlashIds=new Set(),participantFlashTimers=new Map();
     const html=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
     function loadState(){try{const saved=JSON.parse(localStorage.getItem(STORE)||"{}");return Object.assign({},defaultState,saved,{records:saved.records||{},titles:saved.titles||{},daily:saved.daily||{},history:saved.history||[]})}catch(e){storageError="Saqlangan progressni o‘qib bo‘lmadi. Sozlamalardan zaxira faylini import qiling.";return Object.assign({},defaultState)}}
     function save(){try{localStorage.setItem(STORE,JSON.stringify(state))}catch(e){notify("Saqlash amalga oshmadi. Brauzer xotirasi to'lgan bo'lishi mumkin.")}}
@@ -293,6 +293,21 @@
       clearTimeout(participantWriteTimer);
       participantWriteTimer=setTimeout(()=>{participantWriteTimer=null;writeParticipant("solving")},180)
     }
+    function markParticipantActivity(){
+      if(!supabaseClient||!roomCode||!roomSnapshot||!authUid)return;
+      const now=Date.now();
+      if(now-participantLastActivityAt<30000)return;
+      participantLastActivityAt=now;
+      if(session&&session.group&&!session.finished){queueParticipantWrite();return}
+      const code=roomCode,uid=authUid;
+      const write=participantWriteChain.catch(()=>{}).then(async()=>{
+        if(roomCode!==code)return;
+        const {error}=await supabaseClient.from("netquiz_participants").update({updated_at:now}).eq("room_code",code).eq("user_id",uid);
+        if(error)throw error
+      });
+      participantWriteChain=write;
+      write.catch(e=>{if(roomCode===code){participantLastActivityAt=0;notify("Faollik Supabase’ga yozilmadi: "+e.message)}})
+    }
     async function flushParticipantSync(status){
       clearTimeout(participantWriteTimer);participantWriteTimer=null;
       await writeParticipant(status);
@@ -344,6 +359,7 @@
         if(peopleResult.error)throw peopleResult.error;
         if(roomCode!==code)return false;
         if(!roomResult.data){handleRoomDeleted(code);return false}
+        if(roomResult.data.state==="closed"){handleRoomClosed(code);return false}
         const participants={};(peopleResult.data||[]).forEach(p=>{participants[p.user_id]=p});
         markChangedParticipants(participants);
         roomSnapshot={code:roomResult.data.code,title:roomResult.data.title,owner:roomResult.data.owner_id,ownerName:roomResult.data.owner_name,state:roomResult.data.state,ids:roomResult.data.question_ids||[],createdAt:roomResult.data.created_at,participants};
@@ -423,6 +439,7 @@
           const {error:joinError}=await supabaseClient.rpc("join_netquiz_room",{p_room_code:code,p_name:state.name});
           if(joinError)throw joinError
         }
+        participantLastActivityAt=Date.now();
         await subscribeRoomRealtime(code,false);
         return await refreshRoom(code)
       }catch(e){roomCode="";roomSnapshot=null;closeRoomRealtime();history.replaceState(null,"",location.pathname);notify("Xonaga qo‘shilmadi: "+e.message);renderGroup();return false}
@@ -459,24 +476,28 @@
         history.replaceState(null,"",location.pathname+"?room="+code);await attachRoom(code)
       }catch(e){notify("Xonaga ulanib bo‘lmadi: "+e.message)}
     }
-    function leaveRoom(){
+    async function leaveRoom(){
       if(!supabaseClient||!roomCode)return;
       const code=roomCode;
-      closeRoomRealtime();
-      if(session&&session.group){clearInterval(session.clock);session=null}
-      roomCode="";roomSnapshot=null;history.replaceState(null,"",location.pathname);renderGroup();
-      supabaseClient.from("netquiz_participants").delete().eq("room_code",code).eq("user_id",authUid).then(({error})=>{if(error)notify("Xonadan chiqilmadi: "+error.message)})
+      try{
+        const {error}=await supabaseClient.rpc("leave_netquiz_room",{p_room_code:code});
+        if(error)throw error;
+        resetRoomLocally(code,"")
+      }catch(e){if(roomCode===code)notify("Xonadan chiqilmadi: "+e.message)}
     }
-    function handleRoomDeleted(code){
+    function resetRoomLocally(code,message){
       if(!code||roomCode!==code||roomDeleteHandling)return;
       roomDeleteHandling=true;
       if(session&&session.group){clearInterval(session.clock);session=null}
       roomCode="";roomSnapshot=null;groupStarted=false;roomRefreshQueued=false;
+      participantLastActivityAt=0;
       participantFlashTimers.forEach(timer=>clearTimeout(timer));participantFlashTimers.clear();participantFlashIds.clear();
       closeRoomRealtime();
       history.replaceState(null,"",location.pathname);
-      renderGroup();notify("Xona egasi tomonidan o‘chirildi")
+      renderGroup();if(message)notify(message)
     }
+    function handleRoomDeleted(code){resetRoomLocally(code,"Xona egasi tomonidan o‘chirildi")}
+    function handleRoomClosed(code){resetRoomLocally(code,"Xona egasi xonadan chiqdi. Xona yopildi")}
     async function deleteRoom(){
       const code=roomCode;
       if(!code||!roomSnapshot||roomSnapshot.owner!==authUid)return;
@@ -525,7 +546,7 @@
       if(b.id==="createRoom"){await createRoom();return}
       if(b.id==="connectSupabase"){try{await connectSupabase(window.NETQUIZ_SUPABASE_CONFIG);renderGroup();autoJoinRoom()}catch(err){notify("Supabase’ga ulanilmadi: "+err.message);renderGroup()}return}
       if(b.id==="joinRoom"){joinRoom(document.getElementById("groupCode").value);return}
-      if(b.id==="leaveRoom"){leaveRoom();return}
+      if(b.id==="leaveRoom"){await leaveRoom();return}
       if(b.id==="deleteRoom"){await deleteRoom();return}
       if(b.id==="startGroup"){try{const {error}=await supabaseClient.from("netquiz_rooms").update({state:"active"}).eq("code",roomCode);if(error)throw error}catch(err){notify("Testni boshlashda xato: "+err.message)}return}
       if(b.id==="enterGroupTest"&&roomSnapshot){groupStarted=true;await subscribeRoomRealtime(roomCode,false);launch((roomSnapshot.ids||[]).map(id=>QUESTIONS.find(q=>q.id===id)).filter(Boolean),{source:"group",group:true});return}
@@ -533,6 +554,8 @@
     function renderSearchResults(input){
       const term=input.value.trim().toLocaleLowerCase(),out=document.getElementById("searchResults");if(out&&term){const matches=QUESTIONS.filter(q=>(q.q+" "+q.t).toLocaleLowerCase().includes(term)).slice(0,30);out.innerHTML='<div class="question-list" style="margin-top:10px">'+(matches.length?matches.map(q=>'<div class="question-row"><div><b>#'+q.id+' · '+html(q.t)+'</b><p>'+html(q.q)+'</p></div><button class="btn soft" data-practice="'+q.id+'">Yechish</button></div>').join(""):'<p class="muted">Mos savol topilmadi.</p>')+'</div>'}else if(out)out.innerHTML=""
     }
+    document.addEventListener("pointerdown",markParticipantActivity,true);
+    document.addEventListener("keydown",markParticipantActivity,true);
     document.addEventListener("input",e=>{if(e.target.id==="questionSearch")renderSearchResults(e.target)});
     document.addEventListener("change",e=>{
       if(e.target.id==="uniCount")document.getElementById("uniCustom").classList.toggle("hidden",e.target.value!=="custom");
