@@ -101,6 +101,7 @@
     .table-wrap{overflow:auto}.review-table{width:100%;border-collapse:collapse;font-size:.86rem}.review-table th,.review-table td{text-align:left;padding:10px;border-bottom:1px solid var(--line);vertical-align:top}.review-table th{color:var(--muted)}
     .question-list{display:grid;gap:10px}.question-row{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:13px;border:1px solid var(--line);border-radius:12px;background:var(--paper)}
     .question-row p{margin:4px 0;color:var(--muted);font-size:.87rem}
+    .admin-user-list{display:grid;gap:14px;margin-top:16px}.admin-user{padding:16px;border:1px solid var(--line);border-radius:13px;background:var(--bg)}.admin-user h3{margin:0;font-size:1rem;overflow-wrap:anywhere}.admin-room-list{display:grid;gap:9px;margin-top:12px}.admin-room{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:11px;background:var(--paper)}.admin-room p{margin:3px 0;color:var(--muted);font-size:.82rem}.admin-room-meta{min-width:0}.admin-room-meta b{overflow-wrap:anywhere}
     .toast{position:fixed;z-index:10;bottom:20px;left:50%;transform:translate(-50%,20px);padding:11px 16px;border-radius:12px;background:var(--ink);color:var(--paper);opacity:0;pointer-events:none;transition:.2s;max-width:min(90vw,600px);text-align:center}
     .toast.show{opacity:1;transform:translate(-50%,0)}
     .modal-back{position:fixed;z-index:20;inset:0;background:#101729a8;display:grid;place-items:center;padding:18px}
@@ -148,7 +149,7 @@
     const defaultState={name:"",theme:"auto",font:16,masteryTarget:2,immediate:true,records:{},titles:{},daily:{},history:[]};
     let storageError="";
     let state=loadState(),page="home",session=null,activeSection=0,toastTimer=null;
-    let supabaseClient=null,authUid=null,roomCode="",roomChannel=null,roomSnapshot=null,groupStarted=false,roomDeleteHandling=false,supabaseConnectPromise=null,supabaseError="",roomRealtimeStatus="CLOSED",roomPollTimer=null,roomHealthTimer=null,roomRefreshTask=null,roomRefreshQueued=false,roomSubscribeTask=null,participantWriteTimer=null,participantLastActivityAt=0,participantWriteChain=Promise.resolve(),participantFlashIds=new Set(),participantFlashTimers=new Map();
+    let supabaseClient=null,authUid=null,roomCode="",roomChannel=null,roomSnapshot=null,groupStarted=false,roomDeleteHandling=false,supabaseConnectPromise=null,supabaseError="",roomRealtimeStatus="CLOSED",roomPollTimer=null,roomHealthTimer=null,roomRefreshTask=null,roomRefreshQueued=false,roomSubscribeTask=null,participantWriteTimer=null,participantLastActivityAt=0,participantWriteChain=Promise.resolve(),participantFlashIds=new Set(),participantFlashTimers=new Map(),adminLoggedIn=false,adminUsers=[],adminLoading=false,adminError="",adminRefreshTimer=null;
     const html=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
     function loadState(){try{const saved=JSON.parse(localStorage.getItem(STORE)||"{}");return Object.assign({},defaultState,saved,{records:saved.records||{},titles:saved.titles||{},daily:saved.daily||{},history:saved.history||[]})}catch(e){storageError="Saqlangan progressni o‘qib bo‘lmadi. Sozlamalardan zaxira faylini import qiling.";return Object.assign({},defaultState)}}
     function save(){try{localStorage.setItem(STORE,JSON.stringify(state))}catch(e){notify("Saqlash amalga oshmadi. Brauzer xotirasi to'lgan bo'lishi mumkin.")}}
@@ -182,7 +183,65 @@
     }
     function renderSettings(){
       page="settings";const sharedConfig=window.NETQUIZ_SUPABASE_CONFIG;app.innerHTML='<section class="panel"><h2>Sozlamalar</h2><div class="switch-line"><div><b>Ism</b><small>Natijalar qurilmangizda saqlanadi. Ro‘yxatdan o‘tish shart emas.</small></div><button class="btn soft" id="changeName">'+html(state.name||"Ism kiritish")+'</button></div><div class="switch-line"><div><b>Darhol tekshirish</b><small>O‘chirilsa, to‘g‘ri javoblar test yakunida ko‘rsatiladi.</small></div><input id="immediateSetting" type="checkbox" '+(state.immediate?"checked":"")+'></div><div class="switch-line"><div><b>Yodlash mezoni</b><small>Ketma-ket to‘g‘ri javoblardan keyin savol yodlangan hisoblanadi.</small></div><select id="masteryTarget"><option value="2" '+(state.masteryTarget===2?"selected":"")+'>2 marta</option><option value="3" '+(state.masteryTarget===3?"selected":"")+'>3 marta</option><option value="4" '+(state.masteryTarget===4?"selected":"")+'>4 marta</option></select></div><div class="switch-line"><div><b>Progress zaxirasi</b><small>Ism, progress, xatolar va yulduzchalarni JSON fayl sifatida saqlang.</small></div><div class="actions"><button class="btn soft" id="exportData">Eksport</button><button class="btn soft" id="importData">Import</button></div></div><div class="switch-line"><div><b>Progressni tiklash</b><small>Barcha mahalliy natijalar va yodlangan belgilar o‘chiriladi.</small></div><button class="btn danger" id="resetData">Tiklash</button></div><div class="section-head"><div><h2>Supabase guruh sozlamasi</h2><p>'+(sharedConfig?"Supabase sozlamasi barcha foydalanuvchilar uchun bir marta kiritilgan.":"Supabase sozlamasi topilmadi; sayt egasi supabase-config.js faylini sozlashi kerak.")+'</p></div></div>'+(sharedConfig?'<div class="notice">Supabase loyihasi sozlangan. SQL Editor’da <code>supabase-schema.sql</code> faylini bir marta ishga tushiring.</div>':'<div class="notice">Dashboard’dagi Project URL va publishable key’ni <code>supabase-config.js</code> fayliga kiriting. <code>service_role</code> kalitini brauzer kodiga qo‘ymang.</div>')+'<details style="margin-top:14px"><summary><b>Supabase sozlash va xavfsizlik</b></summary><ol><li>Supabase Authentication → Sign In / Providers’da Anonymous sign-in’ni yoqing.</li><li><code>supabase-schema.sql</code> faylidagi SQL’ni SQL Editor’da bir marta ishga tushiring.</li><li>Supabase Database → Publications’da <code>supabase_realtime</code> uchun <code>netquiz_rooms</code> va <code>netquiz_participants</code> jadvallarini yoqing.</li><li><code>supabase-config.js</code> faylini sozlab, saytning qolgan fayllari bilan birga hostingga yuklang.</li></ol><p>Frontend’da faqat publishable key ishlatiladi; u maxfiy emas. Ma’lumotlarga kirish RLS qoidalari va anonim auth orqali himoyalanadi. Secret yoki service_role key’ni hech qachon saytga qo‘ymang.</p></details></section>';
+      app.insertAdjacentHTML("beforeend",renderAdminPanel());
       updateNav("settings")
+    }
+    function renderAdminPanel(){
+      const config=window.NETQUIZ_SUPABASE_CONFIG;
+      if(!config)return '<section class="panel"><h2>Tizim boshqaruvi</h2><p class="notice">Admin bo‘limi uchun avval Supabase loyihasini sozlang.</p></section>';
+      if(!supabaseClient||!authUid)return '<section class="panel"><h2>Tizim boshqaruvi</h2><p class="notice">Admin paneliga kirish uchun Supabase bilan ulanish kerak.</p><button class="btn soft" id="adminConnect">Qayta ulanish</button></section>';
+      if(!adminLoggedIn)return '<section class="panel"><h2>Tizim boshqaruvi</h2><p>Admin login va parolini kiriting. Kirish ma’lumotlari ushbu qurilmada saqlanmaydi.</p><div class="form-grid"><div class="field"><label for="adminUsername">Login</label><input id="adminUsername" name="username" autocomplete="username" maxlength="100"></div><div class="field"><label for="adminPassword">Parol</label><input id="adminPassword" name="password" type="password" autocomplete="current-password" maxlength="1024"></div></div><p><button class="btn primary" id="adminLogin">Kirish</button></p></section>';
+      const users=new Map();
+      adminUsers.forEach(row=>{
+        let user=users.get(row.user_id);
+        if(!user){user={email:row.user_email,createdAt:row.user_created_at,rooms:[]};users.set(row.user_id,user)}
+        if(row.room_code)user.rooms.push(row)
+      });
+      return '<section class="panel"><div class="section-head"><div><h2>Tizim boshqaruvi</h2><p>Xona yaratgan foydalanuvchilar va ularning xonalari. Faol ishtirokchisi yo‘q xonalarni o‘chirish mumkin.</p></div><div class="actions"><button class="btn soft" id="adminRefresh" '+(adminLoading?"disabled":"")+'>Yangilash</button><button class="btn danger" id="adminLogout">Chiqish</button></div></div>'+(adminError?'<p class="notice">'+html(adminError)+'</p>':"")+(adminLoading?'<p class="muted">Ma’lumotlar yuklanmoqda…</p>':users.size?'<div class="admin-user-list">'+Array.from(users.entries()).map(([id,user])=>'<article class="admin-user"><h3>'+html(user.rooms[0]&&user.rooms[0].owner_name||"Foydalanuvchi")+'</h3><p class="muted">'+html(user.email||"Anonim foydalanuvchi")+' · ID: '+html(id)+' · Ro‘yxatdan o‘tgan: '+html(user.createdAt?new Date(user.createdAt).toLocaleString("uz-UZ"):"—")+'</p><div class="admin-room-list">'+user.rooms.map(room=>{const active=Number(room.active_participants)||0;return '<div class="admin-room"><div class="admin-room-meta"><b>'+html(room.room_title||"NetQuiz xona")+' · '+html(room.room_code)+'</b><p>Holati: '+html(room.room_state||"—")+' · Yaratilgan: '+html(room.room_created_at?new Date(Number(room.room_created_at)).toLocaleString("uz-UZ"):"—")+' · Faol ishtirokchilar: '+active+' · Oxirgi faollik: '+html(room.last_activity?new Date(Number(room.last_activity)).toLocaleString("uz-UZ"):"—")+'</p></div><button class="btn danger" data-admin-delete-room="'+html(room.room_code)+'" '+(active?"disabled":"")+'>'+(active?"Ishlatilmoqda":"Xonani o‘chirish")+'</button></div>'}).join("")+'</div></article>').join("")+'</div>':'<p class="muted">Hozircha xona yaratgan foydalanuvchi yoki xona yo‘q.</p>')+'</section>'
+    }
+    async function loadAdminUsers(){
+      adminLoading=true;adminError="";if(page==="settings")renderSettings();
+      try{
+        const {data,error}=await supabaseClient.rpc("netquiz_admin_list_rooms");
+        if(error)throw error;
+        adminUsers=data||[]
+      }catch(error){
+        if(error.message.includes("Admin sessiyasi tugagan")){adminLoggedIn=false;clearInterval(adminRefreshTimer);adminRefreshTimer=null;adminUsers=[];notify("Admin sessiyasi tugadi. Qayta kiring.")}
+        else adminError=error.message
+      }
+      finally{adminLoading=false;if(page==="settings")renderSettings()}
+    }
+    function startAdminRefresh(){
+      clearInterval(adminRefreshTimer);
+      adminRefreshTimer=setInterval(()=>{if(page==="settings"&&adminLoggedIn&&!adminLoading)loadAdminUsers()},15000)
+    }
+    async function adminLogin(){
+      const username=document.getElementById("adminUsername"),password=document.getElementById("adminPassword");
+      if(!username||!password)return;
+      const login=username.value.trim(),secret=password.value;
+      if(!login||!secret){notify("Login va parolni kiriting.");return}
+      try{
+        if(!supabaseClient||!authUid)await connectSupabase(window.NETQUIZ_SUPABASE_CONFIG);
+        const {error}=await supabaseClient.rpc("netquiz_admin_login",{p_username:login,p_password:secret});
+        if(error)throw error;
+        adminLoggedIn=true;password.value="";startAdminRefresh();await loadAdminUsers()
+      }catch(error){password.value="";notify("Admin paneliga kirib bo‘lmadi: "+error.message)}
+    }
+    async function adminLogout(){
+      try{
+        const {error}=await supabaseClient.rpc("netquiz_admin_logout");
+        if(error)throw error;
+        adminLoggedIn=false;clearInterval(adminRefreshTimer);adminRefreshTimer=null;adminUsers=[];adminError="";renderSettings()
+      }catch(error){notify("Admin panelidan chiqib bo‘lmadi: "+error.message)}
+    }
+    async function adminDeleteRoom(code){
+      if(!confirm("Foydalanilmayotgan "+code+" xonasini va uning ishtirokchilarini o‘chirasizmi?"))return;
+      try{
+        const {data,error}=await supabaseClient.rpc("netquiz_admin_delete_room",{p_room_code:code});
+        if(error)throw error;
+        if(!data){notify("Xona faol ishtirokchiga ega yoki allaqachon o‘chirilgan.");return}
+        notify("Xona o‘chirildi.");await loadAdminUsers()
+      }catch(error){notify("Xonani o‘chirib bo‘lmadi: "+error.message)}
     }
     function renderGroup(){
       page="group";const connected=!!(supabaseClient&&authUid);
@@ -540,6 +599,11 @@
       if(b.id==="retryAllWrong"){const list=QUESTIONS.filter(q=>record(q).wrong>0);if(list.length)launch(list,{source:"wrong",shuffle:true});return}
       if(b.dataset.quit!==undefined){if(confirm("Testdan chiqishni xohlaysizmi? Tugallanmagan test natijasi hisoblanmaydi.")){clearInterval(session.clock);if(session.group)closeRoomRealtime();session=null;renderHome()}return}
       if(b.id==="changeName"){const n=prompt("Ismingiz:",state.name);if(n&&n.trim()){state.name=n.trim().slice(0,30);save();renderSettings()}return}
+      if(b.id==="adminLogin"){await adminLogin();return}
+      if(b.id==="adminConnect"){try{await connectSupabase(window.NETQUIZ_SUPABASE_CONFIG);renderSettings()}catch(error){notify("Supabase’ga ulanilmadi: "+error.message)}return}
+      if(b.id==="adminRefresh"){await loadAdminUsers();return}
+      if(b.id==="adminLogout"){await adminLogout();return}
+      if(b.dataset.adminDeleteRoom!==undefined){await adminDeleteRoom(b.dataset.adminDeleteRoom);return}
       if(b.id==="exportData"){const blob=new Blob([JSON.stringify({version:1,state},null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="netquiz-progress-"+today()+".json";a.click();URL.revokeObjectURL(a.href);return}
       if(b.id==="importData"){document.getElementById("importFile").click();return}
       if(b.id==="resetData"){if(confirm("Barcha progress, yulduzcha va statistika o‘chirilsinmi? Bu amalni qaytarib bo‘lmaydi.")){state=Object.assign({},defaultState,{name:state.name,theme:state.theme,font:state.font});save();renderHome();notify("Progress tiklandi.")}return}
@@ -568,7 +632,7 @@
       if(e.target.id==="sectionTimer")document.getElementById("sectionCustomTimer").classList.toggle("hidden",e.target.value!=="custom");
       if(e.target.id==="importFile"&&e.target.files[0]){const f=e.target.files[0],r=new FileReader();r.onload=()=>{try{const obj=JSON.parse(r.result);const incoming=obj.state||obj;if(!incoming.records||!incoming.daily)throw new Error("Progress fayli formati tanilmadi.");if(confirm("Joriy progress import qilinib almashtirilsinmi?")){state=Object.assign({},defaultState,incoming);save();applyTheme();renderHome();notify("Progress import qilindi.")}}catch(err){notify("Import muvaffaqiyatsiz: "+err.message)}};r.onerror=()=>notify("Faylni o‘qib bo‘lmadi.");r.readAsText(f);e.target.value=""}
     });
-    document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.id==="nameInput")setName()});
+    document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.id==="nameInput")setName();if(e.key==="Enter"&&(e.target.id==="adminUsername"||e.target.id==="adminPassword"))adminLogin()});
     applyTheme();
     if(!QUESTIONS.length){app.innerHTML='<section class="panel"><h2>Savollar bazasi yuklanmadi</h2><p>questions.js fayli index.html bilan bir papkada ekanini tekshiring.</p></section>'}
     else if(!state.name)showNameModal();else renderHome();
