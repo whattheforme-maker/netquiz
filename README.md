@@ -15,7 +15,7 @@ Lokal sinash uchun `npx serve` buyrug‘ini ishga tushiring. Hostga `index.html`
 2. **SQL Editor**’da [supabase-schema.sql](./supabase-schema.sql) faylidagi SQL’ni bir marta ishga tushiring.
 3. **Database → Publications** bo‘limida `supabase_realtime` uchun `netquiz_rooms` va `netquiz_participants` jadvallarini yoqing.
 4. [supabase-room-cleanup.sql](./supabase-room-cleanup.sql) migratsiyasini **SQL Editor**’da ishga tushiring.
-5. Admin paneli kerak bo‘lsa, [supabase-admin.sql](./supabase-admin.sql) migratsiyasini ham ishga tushiring. Fayl oxiridagi `insert` namunasini SQL Editor’ga ko‘chiring, `YOUR_ADMIN_LOGIN` va `CHOOSE_A_LONG_UNIQUE_PASSWORD` o‘rniga o‘zingiznikini yozib, bir marta bajaring. Parol bazada bcrypt xeshi ko‘rinishida saqlanadi; uni `index.html` yoki `supabase-config.js`’ga yozmang. Sozlamalar → **Tizim boshqaruvi** bo‘limida shu login va parol bilan kiring.
+5. Admin paneli kerak bo‘lsa, [supabase-admin.sql](./supabase-admin.sql) migratsiyasini ham ishga tushiring. Fayl oxiridagi `insert` namunasini SQL Editor’ga ko‘chiring, `YOUR_ADMIN_LOGIN` va `CHOOSE_A_LONG_UNIQUE_PASSWORD` o‘rniga o‘zingiznikini yozib, bir marta bajaring. Parol bazada bcrypt xeshi ko‘rinishida saqlanadi; uni `index.html` yoki `supabase-config.js`’ga yozmang. Sozlamalar → **Tizim boshqaruvi** bo‘limida shu login va parol bilan kiring. Admin SQL funksiyasi yangilanganda, login ma’lumotlarini qayta kiritmasdan migratsiya faylini yana ishga tushirib yangilash mumkin.
 6. `supabase-config.js` faylida Supabase **Project URL** va brauzer uchun **Publishable key** bo‘lishi kerak. URL formati `https://<project-ref>.supabase.co`; oxiriga `/rest/v1/` qo‘shilmaydi.
 7. Sayt fayllari va `images/` papkasini hostingga yuklang. Foydalanuvchilar akkaunt yaratmaydi: sayt har bir brauzer uchun anonim Supabase sessiyasini ochadi; xona kodi yoki havola orqali bir testga birlashadi.
 
@@ -30,3 +30,5 @@ where jobname = 'netquiz-inactive-room-cleanup';
 ```
 
 Migratsiya xona egasi chiqsa xonani `closed` qiladi, 5 daqiqadan ortiq faol bo‘lmagan ishtirokchilar/xonalarni tozalash funksiyasi va 10 daqiqalik `pg_cron` vazifasini o‘rnatadi. Cleanup funksiyasiga `anon`, `authenticated` yoki `service_role` bevosita kira olmaydi. Admin panelidagi ro‘yxat xona yaratgan foydalanuvchilar va ularning xonalarini ko‘rsatadi; oxirgi 5 daqiqada `waiting` yoki `solving` ishtirokchisi bo‘lgan xonalarda o‘chirish tugmasi bloklanadi, DB funksiyasi ham buni mustaqil tekshiradi.
+
+Admin paneli barcha Supabase foydalanuvchilarini, ismni (profil yoki ishtirokchi ma’lumotidan) va yaratgan xonalarini ko‘rsatadi. Foydalanuvchi ismi anonim auth profiliga ham yoziladi; ro‘yxat har 15 soniyada yangilanadi. Admin SQL funksiyasi yangilanganda, login ma’lumotlarini qayta kiritmasdan [supabase-admin.sql](./supabase-admin.sql) faylini SQL Editor’da yana ishga tushirish mumkin.

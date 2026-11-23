@@ -107,15 +107,22 @@ begin
   select u.id,
          u.email::text,
          u.created_at,
-         r.owner_name,
+         coalesce(r.owner_name, latest_participant.name, nullif(u.raw_user_meta_data ->> 'display_name', '')),
          r.code,
          r.title,
          r.state,
          r.created_at,
          coalesce(activity.active_count, 0)::bigint,
          activity.last_seen
-  from public.netquiz_rooms r
-  join auth.users u on u.id = r.owner_id
+  from auth.users u
+  left join public.netquiz_rooms r on r.owner_id = u.id
+  left join lateral (
+    select p.name
+    from public.netquiz_participants p
+    where p.user_id = u.id
+    order by p.updated_at desc
+    limit 1
+  ) latest_participant on true
   left join lateral (
     select count(*) filter (
              where p.status in ('waiting', 'solving')
